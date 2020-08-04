@@ -169,13 +169,15 @@ export function trigger(
   oldValue?: unknown,
   oldTarget?: Map<unknown, unknown> | Set<unknown>
 ) {
+  // 获取目标的依赖map
   const depsMap = targetMap.get(target)
   if (!depsMap) {
-    // never been tracked
+    // 如果没有被追踪过
     return
   }
 
-  const effects = new Set<ReactiveEffect>()
+  const effects = new Set<ReactiveEffect>()   // 需要执行的effect合集
+  // 将 effectsToAdd 数组中的值添加到effect合集中
   const add = (effectsToAdd: Set<ReactiveEffect> | undefined) => {
     if (effectsToAdd) {
       effectsToAdd.forEach(effect => effects.add(effect))
@@ -183,21 +185,27 @@ export function trigger(
   }
 
   if (type === TriggerOpTypes.CLEAR) {
-    // collection being cleared
-    // trigger all effects for target
+    // 集合为clear时,触发目标的所有effect
     depsMap.forEach(add)
   } else if (key === 'length' && isArray(target)) {
+    // 当key为length且目标为数组时
     depsMap.forEach((dep, key) => {
+      // 当依赖的key为length或者大于新的值时
+      // 即当trigger为数组修改长度时,将key为length的依赖和大于新的length长度的依赖添加到effect合集中
       if (key === 'length' || key >= (newValue as number)) {
         add(dep)
       }
     })
   } else {
-    // schedule runs for SET | ADD | DELETE
+    // schedule运行为 SET | ADD | DELETE时
     if (key !== void 0) {
+      // 当key不为underfind时,添加该key所对应的依赖到effect合集中
       add(depsMap.get(key))
     }
     // also run for iteration key on ADD | DELETE | Map.SET
+    // ???
+
+    // 当触发类型为add或者不是delete的删除时
     const isAddOrDelete =
       type === TriggerOpTypes.ADD ||
       (type === TriggerOpTypes.DELETE && !isArray(target))
@@ -205,6 +213,8 @@ export function trigger(
       isAddOrDelete ||
       (type === TriggerOpTypes.SET && target instanceof Map)
     ) {
+      // 或目标为map,触发类型为set时
+      // ???
       add(depsMap.get(isArray(target) ? 'length' : ITERATE_KEY))
     }
     if (isAddOrDelete && target instanceof Map) {

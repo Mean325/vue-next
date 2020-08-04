@@ -30,7 +30,6 @@ interface Target {
   [ReactiveFlags.READONLY]?: any
 }
 
-// 注释测试
 const collectionTypes = new Set<Function>([Set, Map, WeakMap, WeakSet])
 const isObservableType = /*#__PURE__*/ makeMap(
   'Object,Array,Map,Set,WeakMap,WeakSet'
