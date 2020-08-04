@@ -26,6 +26,7 @@ let isFlushPending = false
 let flushIndex = 0
 let pendingPostFlushCbs: Function[] | null = null
 let pendingPostFlushIndex = 0
+let hasPendingPreFlushJobs = false
 
 const RECURSION_LIMIT = 100
 type CountMap = Map<SchedulerJob | Function, number>
@@ -44,9 +45,10 @@ export function queueJob(job: SchedulerJob) {
   // ensure it doesn't end up in an infinite loop.
   if (
     !queue.length ||
-    !queue.includes(job, job.cb ? flushIndex + 1 : flushIndex)
+    !queue.includes(job, isFlushing && job.cb ? flushIndex + 1 : flushIndex)
   ) {
     queue.push(job)
+    if ((job.id as number) < 0) hasPendingPreFlushJobs = true
     queueFlush()
   }
 }
@@ -55,6 +57,19 @@ export function invalidateJob(job: SchedulerJob) {
   const i = queue.indexOf(job)
   if (i > -1) {
     queue[i] = null
+  }
+}
+
+export function runPreflushJobs() {
+  if (hasPendingPreFlushJobs) {
+    hasPendingPreFlushJobs = false
+    for (let job, i = queue.length - 1; i > flushIndex; i--) {
+      job = queue[i]
+      if (job && (job.id as number) < 0) {
+        job()
+        queue[i] = null
+      }
+    }
   }
 }
 
