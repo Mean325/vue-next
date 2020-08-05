@@ -46,19 +46,24 @@ let activeEffect: ReactiveEffect | undefined
 export const ITERATE_KEY = Symbol(__DEV__ ? 'iterate' : '')
 export const MAP_KEY_ITERATE_KEY = Symbol(__DEV__ ? 'Map key iterate' : '')
 
+// 标记是否被effect过
 export function isEffect(fn: any): fn is ReactiveEffect {
   return fn && fn._isEffect === true
 }
 
+// 在trigger中调用
 export function effect<T = any>(
   fn: () => T,
   options: ReactiveEffectOptions = EMPTY_OBJ
 ): ReactiveEffect<T> {
   if (isEffect(fn)) {
+    // 如果fn被effect过,则返回取raw保存的原始值
     fn = fn.raw
   }
   const effect = createReactiveEffect(fn, options)
   if (!options.lazy) {
+    // 当选项中不为lazy时,则立即执行effect
+    // 比如配置为lazy的有,computed ???
     effect()
   }
   return effect
@@ -76,28 +81,49 @@ export function stop(effect: ReactiveEffect) {
 
 let uid = 0
 
+// 创建响应的effect
+// 在effect中调用
 function createReactiveEffect<T = any>(
   fn: () => T,
   options: ReactiveEffectOptions
 ): ReactiveEffect<T> {
   const effect = function reactiveEffect(): unknown {
+    // 刚执行完 createReactiveEffect 时, active = true
     if (!effect.active) {
+      // ???
       return options.scheduler ? undefined : fn()
     }
     if (!effectStack.includes(effect)) {
+      // 如果effect栈中没有该effect
+      // 将 effect.deps 清空
       cleanup(effect)
       try {
+        // ???
+        // effect栈中推入当前的effect
+        // activeEffeft赋值为当前的effect
+        // 执行effect回调
         enableTracking()
         effectStack.push(effect)
         activeEffect = effect
         return fn()
       } finally {
+        // effect栈中推出当前的effect
+        // ???
+        // activeEffeft赋值为effect栈中最后一个
         effectStack.pop()
         resetTracking()
         activeEffect = effectStack[effectStack.length - 1]
       }
     }
   } as ReactiveEffect
+  // id: 递增的唯一标识符
+  // _isEffect: 是否有经历过 effect
+	// raw：effect 参数函数fn
+	// active: 如果是 !active 会在 run 中执行 return fn(...args);
+	// deps: 在 track 时收集的dep，
+	//   dep 就是在追踪列表中对应的 key
+	//   即 targetMap.get(target).get(key)
+	// options：参数
   effect.id = uid++
   effect._isEffect = true
   effect.active = true
@@ -107,6 +133,7 @@ function createReactiveEffect<T = any>(
   return effect
 }
 
+// 将 effect.deps 清空
 function cleanup(effect: ReactiveEffect) {
   const { deps } = effect
   if (deps.length) {
@@ -118,6 +145,7 @@ function cleanup(effect: ReactiveEffect) {
 }
 
 let shouldTrack = true
+// 追踪合集
 const trackStack: boolean[] = []
 
 export function pauseTracking() {
@@ -135,19 +163,34 @@ export function resetTracking() {
   shouldTrack = last === undefined ? true : last
 }
 
+// 追踪
+// 在 computed、reactive（Proxy-> createGetter）、ref 中被调用???
 export function track(target: object, type: TrackOpTypes, key: unknown) {
   if (!shouldTrack || activeEffect === undefined) {
+    // 如果在执行 effect 方法的时候 options 没有传入 lazy = true, 那会立即执行 effect。
+    // 在经过effect之后 activeEffect 会被赋值为 reactiveEffect的effect变量
+    // 如果没有被 effect 过，activeEffect 就会 === undefined
+    // 而且 shouldTrack 默认为 true
     return
   }
+  // 获取目标的依赖map
   let depsMap = targetMap.get(target)
   if (!depsMap) {
+    // 如果没有被追踪, 依赖Map赋值为map
+    // targetMap中添加以target为key,依赖Map为value的对
     targetMap.set(target, (depsMap = new Map()))
   }
+
   let dep = depsMap.get(key)
   if (!dep) {
+    // 如果没有获取到dep，说明 target.key 并没有被追踪
+    // 此时就在 depsMap 中塞一个值
     depsMap.set(key, (dep = new Set()))
   }
   if (!dep.has(activeEffect)) {
+    // 如果dep中没有当前effect,
+    // dep中添加该effect
+    // 该effect的deps中添加dep
     dep.add(activeEffect)
     activeEffect.deps.push(dep)
     if (__DEV__ && activeEffect.options.onTrack) {
@@ -214,15 +257,18 @@ export function trigger(
       (type === TriggerOpTypes.SET && target instanceof Map)
     ) {
       // 或目标为map,触发类型为set时
-      // ???
+      // 当触发类型为数组的add时, 将key为length的依赖添加到effect合集中
+      // 当为???
       add(depsMap.get(isArray(target) ? 'length' : ITERATE_KEY))
     }
+    // ???
     if (isAddOrDelete && target instanceof Map) {
       add(depsMap.get(MAP_KEY_ITERATE_KEY))
     }
   }
 
   const run = (effect: ReactiveEffect) => {
+    // ???
     if (__DEV__ && effect.options.onTrigger) {
       effect.options.onTrigger({
         effect,
@@ -234,12 +280,15 @@ export function trigger(
         oldTarget
       })
     }
+    // 调用effect
     if (effect.options.scheduler) {
+      // ???
       effect.options.scheduler(effect)
     } else {
       effect()
     }
   }
 
+  // 循环触发effect合集中的effect
   effects.forEach(run)
 }
