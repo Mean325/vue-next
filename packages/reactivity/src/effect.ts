@@ -51,7 +51,7 @@ export function isEffect(fn: any): fn is ReactiveEffect {
   return fn && fn._isEffect === true
 }
 
-// 在trigger中调用
+// 在trigger, computed中调用
 export function effect<T = any>(
   fn: () => T,
   options: ReactiveEffectOptions = EMPTY_OBJ
@@ -283,9 +283,11 @@ export function trigger(
     }
     // 调用effect
     if (effect.options.scheduler) {
-      // ???
+      // 如果配置中有scheduler,则使用scheduler调用effect
+      // 出现在computed中
       effect.options.scheduler(effect)
     } else {
+      // 否则直接调用effect
       effect()
     }
   }

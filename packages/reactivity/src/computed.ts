@@ -74,6 +74,7 @@ export function computed<T>(
       return value
     },
     set value(newValue: T) {
+      // 执行空方法,computed不支持set
       setter(newValue)
     }
   } as any
