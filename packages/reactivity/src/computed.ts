@@ -64,6 +64,9 @@ export function computed<T>(
     effect: runner,
     get value() {
       if (dirty) {
+        // 在真正的去获取计算属性的value的时候
+        // 依据dirty的值决定去不去重新执行getter 获取最新值
+        // ???
         value = runner()
         dirty = false
       }

@@ -13,13 +13,16 @@ import { pauseTracking, resetTracking, DebuggerEvent } from '@vue/reactivity'
 
 export { onActivated, onDeactivated } from './components/KeepAlive'
 
+// 注入钩子
 export function injectHook(
   type: LifecycleHooks,
   hook: Function & { __weh?: Function },
   target: ComponentInternalInstance | null = currentInstance,
   prepend: boolean = false
 ) {
+  // 当有组件内部实例时
   if (target) {
+
     const hooks = target[type] || (target[type] = [])
     // cache the error handling wrapper for injected hooks so the same hook
     // can be properly deduped by the scheduler. "__weh" stands for "with error

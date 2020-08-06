@@ -93,6 +93,7 @@ function createReactiveEffect<T = any>(
       // ???
       return options.scheduler ? undefined : fn()
     }
+    // 随着函数的开始执行入栈，随着函数的执行结束出栈，这样就可以维护嵌套的effect关系
     if (!effectStack.includes(effect)) {
       // 如果effect栈中没有该effect
       // 将 effect.deps 清空
