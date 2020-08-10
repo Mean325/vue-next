@@ -515,13 +515,15 @@ export const locStub: SourceLocation = {
   end: { line: 1, column: 1, offset: 0 }
 }
 
+// 创建虚拟根节点容器
+// rootNode的加入使Vue3.0支持多根模版
 export function createRoot(
   children: TemplateChildNode[],
   loc = locStub
 ): RootNode {
   return {
-    type: NodeTypes.ROOT,
-    children,
+    type: NodeTypes.ROOT, // 节点类型
+    children, // 子节点
     helpers: [],
     components: [],
     directives: [],

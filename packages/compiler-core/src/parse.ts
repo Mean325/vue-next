@@ -73,11 +73,15 @@ export interface ParserContext {
   inVPre: boolean // v-pre, do not process directives and interpolations
 }
 
+
+// template string解析成AST
 export function baseParse(
-  content: string,
+  content: string,  // 原始模板字符串
   options: ParserOptions = {}
 ): RootNode {
+  // 创建解析内容
   const context = createParserContext(content, options)
+  // 获取光标参数
   const start = getCursor(context)
   return createRoot(
     parseChildren(context, TextModes.DATA, []),
@@ -85,22 +89,24 @@ export function baseParse(
   )
 }
 
+// 创建解析内容
 function createParserContext(
   content: string,
   rawOptions: ParserOptions
 ): ParserContext {
   const options = extend({}, defaultParserOptions)
+  // 如果解析选项则取解析选项,否则取默认
   for (const key in rawOptions) {
     // @ts-ignore
     options[key] = rawOptions[key] || defaultParserOptions[key]
   }
   return {
-    options,
-    column: 1,
-    line: 1,
-    offset: 0,
-    originalSource: content,
-    source: content,
+    options,  // 解析选项
+    column: 1, // parser解析到的列数
+    line: 1, // 解析到的行数
+    offset: 0, // 解析到相对于template string开始的位置
+    originalSource: content, // 初始template string，即用户定义的完整模版字符串
+    source: content, // parser处理后的最新template string
     inPre: false,
     inVPre: false
   }
@@ -842,6 +848,7 @@ function parseTextData(
   }
 }
 
+// 获取光标参数 
 function getCursor(context: ParserContext): Position {
   const { column, line, offset } = context
   return { column, line, offset }

@@ -54,6 +54,7 @@ export function getBaseTransformPreset(
 
 // we name it `baseCompile` so that higher order compilers like
 // @vue/compiler-dom can export `compile` while re-exporting everything else.
+// 我们将其命名为“ baseCompile”，以便更高级别的编译器（如@ vue / compiler-dom）可以在重新导出其他所有内容的同时导出“ compile”。
 export function baseCompile(
   template: string | RootNode,
   options: CompilerOptions = {}
@@ -78,7 +79,9 @@ export function baseCompile(
     onError(createCompilerError(ErrorCodes.X_SCOPE_ID_NOT_SUPPORTED))
   }
 
+  // 生成AST节点树
   const ast = isString(template) ? baseParse(template, options) : template
+  // 获取节点转换工具集、指令转换工具集
   const [nodeTransforms, directiveTransforms] = getBaseTransformPreset(
     prefixIdentifiers
   )

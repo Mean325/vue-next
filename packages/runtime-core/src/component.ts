@@ -130,6 +130,7 @@ export { ComponentOptions }
 
 type LifecycleHook = Function[] | null
 
+// 生命周期枚举
 export const enum LifecycleHooks {
   BEFORE_CREATE = 'bc',
   CREATED = 'c',
@@ -155,6 +156,7 @@ export interface SetupContext<E = EmitsOptions> {
 /**
  * @internal
  */
+// 内部渲染方法
 export type InternalRenderFunction = {
   (
     ctx: ComponentPublicInstance,
@@ -171,6 +173,7 @@ export type InternalRenderFunction = {
 /**
  * We expose a subset of properties on the internal instance as they are
  * useful for advanced external libraries and tools.
+ * 我们在内部实例上公开属性的子集，因为它们对于高级外部库和工具很有用。
  */
 export interface ComponentInternalInstance {
   uid: number
