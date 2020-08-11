@@ -525,8 +525,8 @@ export function createRoot(
     type: NodeTypes.ROOT, // 节点类型
     children, // 子节点
     helpers: [],
-    components: [],
-    directives: [],
+    components: [], // 组件节点
+    directives: [], // 指令节点
     hoists: [],
     imports: [],
     cached: 0,

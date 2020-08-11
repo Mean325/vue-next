@@ -37,6 +37,7 @@ export const parserOptions: ParserOptions = {
   },
 
   // https://html.spec.whatwg.org/multipage/parsing.html#tree-construction-dispatcher
+  // 获取命名空间
   getNamespace(tag: string, parent: ElementNode | undefined): DOMNamespaces {
     let ns = parent ? parent.ns : DOMNamespaces.HTML
 
@@ -86,15 +87,20 @@ export const parserOptions: ParserOptions = {
   },
 
   // https://html.spec.whatwg.org/multipage/parsing.html#parsing-html-fragments
+  // 获取模板字符串模式
   getTextMode({ tag, ns }: ElementNode): TextModes {
+    // 节点命名空间是html时
     if (ns === DOMNamespaces.HTML) {
+      // 当节点为textarea或title时
       if (tag === 'textarea' || tag === 'title') {
         return TextModes.RCDATA
       }
+      // 当节点为style,iframe,script,noscript时
       if (isRawTextContainer(tag)) {
         return TextModes.RAWTEXT
       }
     }
+    // 非html命名空间的节点归类到DATA
     return TextModes.DATA
   }
 }

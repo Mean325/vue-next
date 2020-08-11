@@ -69,8 +69,8 @@ export interface ParserContext {
   offset: number
   line: number
   column: number
-  inPre: boolean // HTML <pre> tag, preserve whitespaces
-  inVPre: boolean // v-pre, do not process directives and interpolations
+  inPre: boolean // HTML <pre>标记，保留空格
+  inVPre: boolean // v-pre，不处理指令和插值
 }
 
 
@@ -112,15 +112,17 @@ function createParserContext(
   }
 }
 
+// 解析子节点
 function parseChildren(
   context: ParserContext,
   mode: TextModes,
-  ancestors: ElementNode[]
+  ancestors: ElementNode[]    // 祖先节点，是一个栈结构，用于维护节点嵌套关系，越靠后的节点在dom树中的层级越深
 ): TemplateChildNode[] {
-  const parent = last(ancestors)
-  const ns = parent ? parent.ns : Namespaces.HTML
-  const nodes: TemplateChildNode[] = []
+  const parent = last(ancestors)  // 祖先节点中的最后一个,即父节点
+  const ns = parent ? parent.ns : Namespaces.HTML // 获取命名空间.如果存在父节点取父节点命名空间,否则为HTML
+  const nodes: TemplateChildNode[] = [] // 存储解析出来的AST子节点
 
+  // 当遇到闭合标签时结束解析
   while (!isEnd(context, mode, ancestors)) {
     __TEST__ && assert(context.source.length > 0)
     const s = context.source
@@ -129,6 +131,8 @@ function parseChildren(
     if (mode === TextModes.DATA || mode === TextModes.RCDATA) {
       if (!context.inVPre && startsWith(s, context.options.delimiters[0])) {
         // '{{'
+        // 解析以‘{{’开头的模版
+        // 处理插值 => {{ value }}
         node = parseInterpolation(context, mode)
       } else if (mode === TextModes.DATA && s[0] === '<') {
         // https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
@@ -173,6 +177,7 @@ function parseChildren(
             node = parseBogusComment(context)
           }
         } else if (/[a-z]/i.test(s[1])) {
+          // 解析dom节点
           node = parseElement(context, ancestors)
         } else if (s[1] === '?') {
           emitError(
@@ -358,6 +363,7 @@ function parseBogusComment(context: ParserContext): CommentNode | undefined {
   }
 }
 
+// 解析DOM元素
 function parseElement(
   context: ParserContext,
   ancestors: ElementNode[]
@@ -365,12 +371,12 @@ function parseElement(
   __TEST__ && assert(/^<[a-z]/i.test(context.source))
 
   // Start tag.
-  const wasInPre = context.inPre
-  const wasInVPre = context.inVPre
-  const parent = last(ancestors)
+  const wasInPre = context.inPre  // 是否为pre
+  const wasInVPre = context.inVPre  // 是否为v-pre
+  const parent = last(ancestors)  // 获取父节点
   const element = parseTag(context, TagType.Start, parent)
-  const isPreBoundary = context.inPre && !wasInPre
-  const isVPreBoundary = context.inVPre && !wasInVPre
+  const isPreBoundary = context.inPre && !wasInPre  // 是否pre边界???
+  const isVPreBoundary = context.inVPre && !wasInVPre // 是否v-pre边界???
 
   if (element.isSelfClosing || context.options.isVoidTag(element.tag)) {
     return element
@@ -418,7 +424,7 @@ const isSpecialTemplateDirective = /*#__PURE__*/ makeMap(
 )
 
 /**
- * Parse a tag (E.g. `<div id=a>`) with that type (start tag or end tag).
+ * 解析具有该类型（开始或结束）的标签（例如<div id = a>）
  */
 function parseTag(
   context: ParserContext,
@@ -432,27 +438,31 @@ function parseTag(
     )
 
   // Tag open.
-  const start = getCursor(context)
+  const start = getCursor(context)  // 获取光标参数
+  // 正则匹配开始 / 结束标签，\/?表示‘/’可有可无，因为此处匹配的是开始或者结束标签
+  // 所以有的有‘/’有的没有
   const match = /^<\/?([a-z][^\t\r\n\f />]*)/i.exec(context.source)!
+  // exec返回的数组第一个是正则匹配文本，后面匹配到的是除\t\r\n\f />这些字符外的内容
+  // 也就是节点的标签名、各种属性集
   const tag = match[1]
   const ns = context.options.getNamespace(tag, parent)
 
-  advanceBy(context, match[0].length)
-  advanceSpaces(context)
+  advanceBy(context, match[0].length) // 前进???
+  advanceSpaces(context)  // 空格前进???
 
-  // save current state in case we need to re-parse attributes with v-pre
-  const cursor = getCursor(context)
-  const currentSource = context.source
+  // 保存当前状态，以防我们需要使用v-pre重新解析属性
+  const cursor = getCursor(context) // 获取光标
+  const currentSource = context.source  // 原始内容
 
-  // Attributes.
+  // 属性
   let props = parseAttributes(context, type)
 
-  // check <pre> tag
+  // 检查是否为<pre>标签
   if (context.options.isPreTag(tag)) {
     context.inPre = true
   }
 
-  // check v-pre
+  // 检查是否有v-pre
   if (
     !context.inVPre &&
     props.some(p => p.type === NodeTypes.DIRECTIVE && p.name === 'pre')
@@ -875,6 +885,7 @@ function startsWith(source: string, searchString: string): boolean {
   return source.startsWith(searchString)
 }
 
+// 光标前进
 function advanceBy(context: ParserContext, numberOfCharacters: number): void {
   const { source } = context
   __TEST__ && assert(numberOfCharacters <= source.length)
