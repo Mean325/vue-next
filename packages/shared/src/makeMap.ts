@@ -5,6 +5,11 @@
  * \/\*#\_\_PURE\_\_\*\/
  * So that rollup can tree-shake them if necessary.
  */
+/**
+ * 制作一个地图并返回一个函数，用于检查该地图中是否有键。
+ * 重要提示：此函数的所有调用必须以前缀/ *#__PURE__* /
+ * 这样，如果需要回收, 可以tree-shake它们。
+ */
 export function makeMap(
   str: string,
   expectsLowerCase?: boolean

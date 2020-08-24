@@ -435,11 +435,12 @@ export const setCurrentInstance = (
   currentInstance = instance
 }
 
+// 是否为内置标签???
 const isBuiltInTag = /*#__PURE__*/ makeMap('slot,component')
 
 // 验证组件名称
 export function validateComponentName(name: string, config: AppConfig) {
-  const appIsNativeTag = config.isNativeTag || NO
+  const appIsNativeTag = config.isNativeTag || NO   // app是否为原生标签???
   if (isBuiltInTag(name) || appIsNativeTag(name)) {
     warn(
       'Do not use built-in or reserved HTML elements as component id: ' + name
