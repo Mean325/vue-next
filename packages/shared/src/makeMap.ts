@@ -20,4 +20,5 @@ export function makeMap(
     map[list[i]] = true
   }
   return expectsLowerCase ? val => !!map[val.toLowerCase()] : val => !!map[val]
+  // return { slot: true, component: true }
 }

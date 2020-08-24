@@ -53,6 +53,7 @@ export const hydrate = ((...args) => {
 export const createApp = ((...args) => {
   const app = ensureRenderer().createApp(...args)
 
+  // 如果是开发模式,注入isNativeTag函数,用于验证是否为原生标签
   if (__DEV__) {
     injectNativeTagCheck(app)
   }
@@ -79,6 +80,7 @@ export const createApp = ((...args) => {
 export const createSSRApp = ((...args) => {
   const app = ensureHydrationRenderer().createApp(...args)
 
+  // 如果是开发模式,注入isNativeTag函数,用于验证是否为原生标签
   if (__DEV__) {
     injectNativeTagCheck(app)
   }
@@ -95,8 +97,8 @@ export const createSSRApp = ((...args) => {
 }) as CreateAppFunction<Element>
 
 function injectNativeTagCheck(app: App) {
-  // Inject `isNativeTag`
-  // this is used for component name validation (dev only)
+  // 注入isNativeTag函数
+  // 这用于组件名称验证（仅适用于dev）
   Object.defineProperty(app.config, 'isNativeTag', {
     value: (tag: string) => isHTMLTag(tag) || isSVGTag(tag),
     writable: false

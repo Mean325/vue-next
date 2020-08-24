@@ -344,14 +344,16 @@ let uid = 0
 // 创建组件实例
 export function createComponentInstance(
   vnode: VNode,   // 虚拟节点
-  parent: ComponentInternalInstance | null,
-  suspense: SuspenseBoundary | null
+  parent: ComponentInternalInstance | null,   // 父节点
+  suspense: SuspenseBoundary | null   // 悬念???
 ) {
   const type = vnode.type as Component
   // inherit parent app context - or - if root, adopt from root vnode
+  // 继承父应用程序上下文-或-如果是root，则取自root vnode
   const appContext =
     (parent ? parent.appContext : vnode.appContext) || emptyAppContext
 
+  // 实例
   const instance: ComponentInternalInstance = {
     uid: uid++,
     vnode,
@@ -361,7 +363,7 @@ export function createComponentInstance(
     root: null!, // to be immediately set
     next: null,
     subTree: null!, // will be set synchronously right after creation
-    update: null!, // will be set synchronously right after creation
+    update: null!, // 创建后立即同步设置
     render: null,
     proxy: null,
     withProxy: null,
@@ -370,7 +372,7 @@ export function createComponentInstance(
     accessCache: null!,
     renderCache: [],
 
-    // state
+    // 状态
     ctx: EMPTY_OBJ,
     data: EMPTY_OBJ,
     props: EMPTY_OBJ,
@@ -381,12 +383,13 @@ export function createComponentInstance(
     setupContext: null,
 
     // suspense related
+    // 悬念相关???
     suspense,
     asyncDep: null,
     asyncResolved: false,
 
-    // lifecycle hooks
-    // not using enums here because it results in computed properties
+    // 生命周期挂钩
+    // 这里不使用枚举，因为它会导致计算出的属性
     isMounted: false,
     isUnmounted: false,
     isDeactivated: false,
@@ -435,12 +438,13 @@ export const setCurrentInstance = (
   currentInstance = instance
 }
 
-// 是否为内置标签???
+// 检查标签是否为内置标签
 const isBuiltInTag = /*#__PURE__*/ makeMap('slot,component')
 
 // 验证组件名称
 export function validateComponentName(name: string, config: AppConfig) {
   const appIsNativeTag = config.isNativeTag || NO   // app是否为原生标签???
+  // 判断标签是否为内置标签(slot, component) 或
   if (isBuiltInTag(name) || appIsNativeTag(name)) {
     warn(
       'Do not use built-in or reserved HTML elements as component id: ' + name
@@ -448,12 +452,15 @@ export function validateComponentName(name: string, config: AppConfig) {
   }
 }
 
+// 是否在SSR组件设置中
 export let isInSSRComponentSetup = false
 
+// 建立组件
 export function setupComponent(
   instance: ComponentInternalInstance,
   isSSR = false
 ) {
+  // 是否为SSR渲染
   isInSSRComponentSetup = isSSR
 
   const { props, children, shapeFlag } = instance.vnode
@@ -468,6 +475,7 @@ export function setupComponent(
   return setupResult
 }
 
+// 建立状态组件???
 function setupStatefulComponent(
   instance: ComponentInternalInstance,
   isSSR: boolean

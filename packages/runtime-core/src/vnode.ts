@@ -170,6 +170,16 @@ let currentBlock: VNode[] | null = null
  *
  * @private
  */
+/**
+ * 打开一个块。
+ * 必须在`createBlock`之前调用。 它不能是`createBlock`的一部分
+ * 因为该块的子级是在调用`createBlock`本身之前进行求值的。 生成的代码通常如下所示：
+ * function render（）{
+ *    return（openBlock（），createBlock（'div'，null，[...]））
+ * }
+ * 创建v-for片段块时，disableTracking为true，因为v-for片段始终会区分其子代。
+ **/
+// 开启一个块???
 export function openBlock(disableTracking = false) {
   blockStack.push((currentBlock = disableTracking ? null : []))
 }
@@ -178,6 +188,9 @@ export function openBlock(disableTracking = false) {
 // Only tracks when this value is > 0
 // We are not using a simple boolean because this value may need to be
 // incremented/decremented by nested usage of v-once (see below)
+// 是否应该跟踪块内的动态子节点。
+// 仅在此值> 0时跟踪
+// 我们不使用简单的布尔值，因为此值可能需要通过v-once的嵌套用法递增/递减（请参见下文）
 let shouldTrack = 1
 
 /**
