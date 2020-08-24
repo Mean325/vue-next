@@ -32,6 +32,7 @@ type MergedParserOptions = Omit<Required<ParserOptions>, OptionalOptions> &
 // The default decoder only provides escapes for characters reserved as part of
 // the template syntax, and is only used if the custom renderer did not provide
 // a platform-specific decoder.
+// 默认解码器仅提供保留为模板语法一部分的字符的转义符，并且仅在自定义渲染器未提供特定于平台的解码器的情况下使用。
 const decodeRE = /&(gt|lt|amp|apos|quot);/g
 const decodeMap: Record<string, string> = {
   gt: '>',

@@ -245,7 +245,7 @@ export interface ComponentInternalInstance {
    */
   ctx: Data
 
-  // internal state
+  // 内部状态
   data: Data
   props: Data
   attrs: Data
@@ -341,8 +341,9 @@ const emptyAppContext = createAppContext()
 
 let uid = 0
 
+// 创建组件实例
 export function createComponentInstance(
-  vnode: VNode,
+  vnode: VNode,   // 虚拟节点
   parent: ComponentInternalInstance | null,
   suspense: SuspenseBoundary | null
 ) {
@@ -410,8 +411,8 @@ export function createComponentInstance(
   } else {
     instance.ctx = { _: instance }
   }
-  instance.root = parent ? parent.root : instance
-  instance.emit = emit.bind(null, instance)
+  instance.root = parent ? parent.root : instance   // 如果有父节点则取父节点的root,否则取当前实例
+  instance.emit = emit.bind(null, instance)   // ???
 
   if (__DEV__ || __FEATURE_PROD_DEVTOOLS__) {
     devtoolsComponentAdded(instance)
@@ -420,11 +421,14 @@ export function createComponentInstance(
   return instance
 }
 
+// 当前实例
 export let currentInstance: ComponentInternalInstance | null = null
 
+// 获取当前实例
 export const getCurrentInstance: () => ComponentInternalInstance | null = () =>
   currentInstance || currentRenderingInstance
 
+// 设置当前实例
 export const setCurrentInstance = (
   instance: ComponentInternalInstance | null
 ) => {
@@ -433,6 +437,7 @@ export const setCurrentInstance = (
 
 const isBuiltInTag = /*#__PURE__*/ makeMap('slot,component')
 
+// 验证组件名称
 export function validateComponentName(name: string, config: AppConfig) {
   const appIsNativeTag = config.isNativeTag || NO
   if (isBuiltInTag(name) || appIsNativeTag(name)) {
@@ -688,10 +693,10 @@ function createSetupContext(instance: ComponentInternalInstance): SetupContext {
   }
 }
 
-// record effects created during a component's setup() so that they can be
-// stopped when the component unmounts
+// 记录在组件的setup（）期间创建的effect，以便在卸载组件时可以将其停止
 export function recordInstanceBoundEffect(effect: ReactiveEffect) {
   if (currentInstance) {
+    // 当前实例不为空时,讲effect推入队列中
     ;(currentInstance.effects || (currentInstance.effects = [])).push(effect)
   }
 }

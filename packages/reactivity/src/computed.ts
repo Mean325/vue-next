@@ -4,6 +4,7 @@ import { Ref } from './ref'
 import { isFunction, NOOP } from '@vue/shared'
 import { ReactiveFlags } from './reactive'
 
+// 计算字符串,数字,boolean等简单类型
 export interface ComputedRef<T = any> extends WritableComputedRef<T> {
   readonly value: T
 }
@@ -12,24 +13,25 @@ export interface WritableComputedRef<T> extends Ref<T> {
   readonly effect: ReactiveEffect<T>
 }
 
-export type ComputedGetter<T> = (ctx?: any) => T
-export type ComputedSetter<T> = (v: T) => void
+export type ComputedGetter<T> = (ctx?: any) => T    // getter函数别名
+export type ComputedSetter<T> = (v: T) => void    // 泛型函数别名
 
 export interface WritableComputedOptions<T> {
   get: ComputedGetter<T>
   set: ComputedSetter<T>
-}
+}   // 接口 - 可写计算选项
 
 export function computed<T>(getter: ComputedGetter<T>): ComputedRef<T>
 export function computed<T>(
   options: WritableComputedOptions<T>
-): WritableComputedRef<T>
+): WritableComputedRef<T>   // 可写计算选项
 export function computed<T>(
   getterOrOptions: ComputedGetter<T> | WritableComputedOptions<T>
 ) {
   let getter: ComputedGetter<T>
   let setter: ComputedSetter<T>
 
+  // 如果computed中为函数,则赋值给getter; setter设为空
   if (isFunction(getterOrOptions)) {
     getter = getterOrOptions
     setter = __DEV__
@@ -38,6 +40,7 @@ export function computed<T>(
         }
       : NOOP
   } else {
+    // 如果不为函数,则取参数中的get和set
     getter = getterOrOptions.get
     setter = getterOrOptions.set
   }
@@ -47,8 +50,9 @@ export function computed<T>(
   let computed: ComputedRef<T>
 
   const runner = effect(getter, {
-    lazy: true,
+    lazy: true,   // effect时不触发回调
     scheduler: () => {
+      // 通过dirty防止出现内存溢出 ???
       if (!dirty) {
         dirty = true
         trigger(computed, TriggerOpTypes.SET, 'value')
@@ -60,7 +64,7 @@ export function computed<T>(
     [ReactiveFlags.IS_READONLY]:
       isFunction(getterOrOptions) || !getterOrOptions.set,
 
-    // expose effect so computed can be stopped
+    // 暴露effrct，因此computed可以停止
     effect: runner,
     get value() {
       if (dirty) {
