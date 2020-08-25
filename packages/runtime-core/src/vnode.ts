@@ -151,6 +151,8 @@ export interface VNode<
 // can divide a template into nested blocks, and within each block the node
 // structure would be stable. This allows us to skip most children diffing
 // and only worry about the dynamic nodes (indicated by patch flags).
+// 由于v-if和v-for是节点结构可以动态更改的两种可能方式，一旦我们将v-if分支和每个v-for片段视为一个块，就可以将模板分为嵌套块，并在每个块内节点结构将是稳定的。
+// 这使我们可以跳过大多数子进程的扩散，而只担心动态节点（由补丁标志表示）。
 const blockStack: (VNode[] | null)[] = []
 let currentBlock: VNode[] | null = null
 
@@ -179,7 +181,7 @@ let currentBlock: VNode[] | null = null
  * }
  * 创建v-for片段块时，disableTracking为true，因为v-for片段始终会区分其子代。
  **/
-// 开启一个块???
+// 初始化一个块
 export function openBlock(disableTracking = false) {
   blockStack.push((currentBlock = disableTracking ? null : []))
 }
@@ -220,12 +222,18 @@ export function setBlockTracking(value: number) {
  *
  * @private
  */
+/**
+ * 创建一个块根vnode。 接受与`createVNode`相同的参数。
+ * 块根跟踪“dynamicChildren”数组中块内的动态节点。
+ */
+// <span :id="msg">{{ msg }}</span> 编译为
+// createBlock("span", { id: _ctx.msg }, _toDisplayString(_ctx.msg), 9 /* TEXT, PROPS */, ["id"])
 export function createBlock(
-  type: VNodeTypes | ClassComponent,
-  props?: Record<string, any> | null,
-  children?: any,
-  patchFlag?: number,
-  dynamicProps?: string[]
+  type: VNodeTypes | ClassComponent,  // 节点类型 -> 标签名
+  props?: Record<string, any> | null,   // 节点属性
+  children?: any,   // 子节点
+  patchFlag?: number,   // 补丁标记,标记该DOM哪些是可变属性
+  dynamicProps?: string[] // 动态属性数组,存放可能变化的属性
 ): VNode {
   const vnode = createVNode(
     type,
@@ -233,15 +241,16 @@ export function createBlock(
     children,
     patchFlag,
     dynamicProps,
-    true /* isBlock: prevent a block from tracking itself */
+    true /* isBlock：防止块跟踪自身 */
   )
-  // save current block children on the block vnode
+  // 将当前的块子级保存在块vnode上
   vnode.dynamicChildren = currentBlock || EMPTY_ARR
   // close block
   blockStack.pop()
   currentBlock = blockStack[blockStack.length - 1] || null
   // a block is always going to be patched, so track it as a child of its
   // parent block
+  // 始终会修补一个块，因此请将其作为其父块的子代进行跟踪???
   if (currentBlock) {
     currentBlock.push(vnode)
   }
@@ -252,6 +261,7 @@ export function isVNode(value: any): value is VNode {
   return value ? value.__v_isVNode === true : false
 }
 
+// 比较两个vnode类型
 export function isSameVNodeType(n1: VNode, n2: VNode): boolean {
   if (
     __DEV__ &&
@@ -309,12 +319,12 @@ export const createVNode = (__DEV__
   : _createVNode) as typeof _createVNode
 
 function _createVNode(
-  type: VNodeTypes | ClassComponent | typeof NULL_DYNAMIC_COMPONENT,
-  props: (Data & VNodeProps) | null = null,
-  children: unknown = null,
-  patchFlag: number = 0,
-  dynamicProps: string[] | null = null,
-  isBlockNode = false
+  type: VNodeTypes | ClassComponent | typeof NULL_DYNAMIC_COMPONENT,  // 节点类型 -> 标签名
+  props: (Data & VNodeProps) | null = null,   // 节点属性
+  children: unknown = null,   // 子节点
+  patchFlag: number = 0,   // 补丁标记,标记该DOM哪些是可变属性
+  dynamicProps: string[] | null = null, // 动态属性数组,存放可能变化的属性
+  isBlockNode = false   // 是否为块,防止块跟踪自身
 ): VNode {
   if (!type || type === NULL_DYNAMIC_COMPONENT) {
     if (__DEV__ && !type) {
@@ -357,6 +367,7 @@ function _createVNode(
   }
 
   // encode the vnode type information into a bitmap
+  // 将vnode类型信息编码为位图
   const shapeFlag = isString(type)
     ? ShapeFlags.ELEMENT
     : __FEATURE_SUSPENSE__ && isSuspense(type)
@@ -417,12 +428,15 @@ function _createVNode(
   // component nodes also should always be patched, because even if the
   // component doesn't need to update, it needs to persist the instance on to
   // the next vnode so that it can be properly unmounted later.
+  // 修补程序标记的存在表示此节点需要在更新时进行修补。
+  // 组件节点也应该始终打补丁，因为即使不需要更新组件，它也需要将实例持久保存到下一个vnode上，以便以后可以正确卸载。???
   if (
     shouldTrack > 0 &&
     !isBlockNode &&
     currentBlock &&
     // the EVENTS flag is only for hydration and if it is the only flag, the
     // vnode should not be considered dynamic due to handler caching.
+    // EVENTS标志仅用于水合作用，如果它是唯一标志，则由于处理程序缓存，不应将vnode视为动态的。???
     patchFlag !== PatchFlags.HYDRATE_EVENTS &&
     (patchFlag > 0 || shapeFlag & ShapeFlags.COMPONENT)
   ) {
@@ -500,6 +514,7 @@ export function createStaticVNode(
 ): VNode {
   // A static vnode can contain multiple stringified elements, and the number
   // of elements is necessary for hydration.
+  // //静态vnode可以包含多个字符串化元素，并且元素数量对于水合是必需的。
   const vnode = createVNode(Static, null, content)
   vnode.staticCount = numberOfNodes
   return vnode
@@ -512,6 +527,7 @@ export function createCommentVNode(
   text: string = '',
   // when used as the v-else branch, the comment node must be created as a
   // block to ensure correct updates.
+  // 当用作v-else分支时，必须将注释节点创建为一个块，以确保正确的更新。
   asBlock: boolean = false
 ): VNode {
   return asBlock

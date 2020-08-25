@@ -15,6 +15,7 @@
 
 export const enum PatchFlags {
   // Indicates an element with dynamic textContent (children fast path)
+  // 表示具有动态textContent的元素（子节点快速路径）
   TEXT = 1,
 
   // Indicates an element with dynamic class binding.
@@ -42,6 +43,7 @@ export const enum PatchFlags {
 
   // Indicates an element with event listeners (which need to be attached
   // during hydration)
+  // 指示具有事件侦听器的元素（在水合期间需要附加）
   HYDRATE_EVENTS = 1 << 5,
 
   // Indicates a fragment whose children order doesn't change.
