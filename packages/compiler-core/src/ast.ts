@@ -22,15 +22,16 @@ export const enum Namespaces {
   HTML
 }
 
+// 节点类型枚举
 export const enum NodeTypes {
-  ROOT,
-  ELEMENT,
-  TEXT,
-  COMMENT,
-  SIMPLE_EXPRESSION,
-  INTERPOLATION,
-  ATTRIBUTE,
-  DIRECTIVE,
+  ROOT, // 根节点 0
+  ELEMENT, // 元素节点 1
+  TEXT, // 文本节点 2
+  COMMENT, // 注释节点 3
+  SIMPLE_EXPRESSION, // 表达式 4
+  INTERPOLATION, // 双花插值 {{ }} 5
+  ATTRIBUTE, // HTML普通属性 6
+  DIRECTIVE, // Vue指令 7
   // containers
   COMPOUND_EXPRESSION,
   IF,
@@ -57,15 +58,15 @@ export const enum NodeTypes {
 }
 
 export const enum ElementTypes {
-  ELEMENT,
-  COMPONENT,
-  SLOT,
-  TEMPLATE
+  ELEMENT, // 0 元素节点
+  COMPONENT, // 1 组件
+  SLOT, // 2 插槽
+  TEMPLATE // 3 模板
 }
 
 export interface Node {
   type: NodeTypes
-  loc: SourceLocation
+  loc: SourceLocation   // 位置信息，表明这个节点在源 HTML 字符串中的位置，包含行，列，偏移量等信息
 }
 
 // The node's range. The `start` is inclusive and `end` is exclusive.
@@ -117,14 +118,15 @@ export type ElementNode =
   | SlotOutletNode
   | TemplateNode
 
+// 元素节点
 export interface BaseElementNode extends Node {
-  type: NodeTypes.ELEMENT
-  ns: Namespace
-  tag: string
-  tagType: ElementTypes
-  isSelfClosing: boolean
-  props: Array<AttributeNode | DirectiveNode>
-  children: TemplateChildNode[]
+  type: NodeTypes.ELEMENT   // 类型
+  ns: Namespace   // 命名空间,默认为 HTML，即 0
+  tag: string   // 标签名
+  tagType: ElementTypes   // 元素类型
+  isSelfClosing: boolean    // 是否是自闭合标签 例如 <br/> <hr/>
+  props: Array<AttributeNode | DirectiveNode>   // props 属性，包含 HTML 属性和指令
+  children: TemplateChildNode[]   // 子节点
 }
 
 export interface PlainElementNode extends BaseElementNode {
@@ -189,10 +191,11 @@ export interface DirectiveNode extends Node {
   parseResult?: ForParseResult
 }
 
+// 简单表达式节点
 export interface SimpleExpressionNode extends Node {
   type: NodeTypes.SIMPLE_EXPRESSION
   content: string
-  isStatic: boolean
+  isStatic: boolean // 是否为静态节点，静态节点只会生成一次，并且在后面的阶段一直复用同一个，不用进行 diff 比较
   isConstant: boolean
   /**
    * Indicates this is an identifier for a hoist vnode call and points to the

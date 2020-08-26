@@ -1,3 +1,5 @@
+// parse阶段将模板字符串转化为语法抽象树 AST
+
 import { ParserOptions } from './options'
 import { NO, isArray, makeMap, extend } from '@vue/shared'
 import { ErrorCodes, createCompilerError, defaultOnError } from './errors'
@@ -113,7 +115,7 @@ function createParserContext(
   }
 }
 
-// 解析子节点
+// 解析模板字符串主入口
 function parseChildren(
   context: ParserContext,
   mode: TextModes,
@@ -136,15 +138,16 @@ function parseChildren(
         // 处理插值 => {{ value }}
         node = parseInterpolation(context, mode)
       } else if (mode === TextModes.DATA && s[0] === '<') {
-        // https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
+        // 以 < 标签开头时
         if (s.length === 1) {
           emitError(context, ErrorCodes.EOF_BEFORE_TAG_NAME, 1)
         } else if (s[1] === '!') {
-          // https://html.spec.whatwg.org/multipage/parsing.html#markup-declaration-open-state
+          // 以 <! 标签开头时
           if (startsWith(s, '<!--')) {
+            // 以 <!-- 标签开头时, 解析注释
             node = parseComment(context)
           } else if (startsWith(s, '<!DOCTYPE')) {
-            // Ignore DOCTYPE by a limitation.
+            // 通过限制忽略DOCTYPE文档声明，当成注释处理
             node = parseBogusComment(context)
           } else if (startsWith(s, '<![CDATA[')) {
             if (ns !== Namespaces.HTML) {
@@ -158,7 +161,7 @@ function parseChildren(
             node = parseBogusComment(context)
           }
         } else if (s[1] === '/') {
-          // https://html.spec.whatwg.org/multipage/parsing.html#end-tag-open-state
+          // 以 </ 标签开头时, 为结束标签
           if (s.length === 2) {
             emitError(context, ErrorCodes.EOF_BEFORE_TAG_NAME, 2)
           } else if (s[2] === '>') {
@@ -178,7 +181,7 @@ function parseChildren(
             node = parseBogusComment(context)
           }
         } else if (/[a-z]/i.test(s[1])) {
-          // 解析dom节点
+          // 解析普通开始标签
           node = parseElement(context, ancestors)
         } else if (s[1] === '?') {
           emitError(
@@ -193,6 +196,7 @@ function parseChildren(
       }
     }
     if (!node) {
+      // 解析普通文本节点
       node = parseText(context, mode)
     }
 
@@ -299,6 +303,7 @@ function parseCDATA(
   return nodes
 }
 
+// 解析注释
 function parseComment(context: ParserContext): CommentNode {
   __TEST__ && assert(startsWith(context.source, '<!--'))
 
@@ -341,6 +346,7 @@ function parseComment(context: ParserContext): CommentNode {
   }
 }
 
+// 解析文档声明
 function parseBogusComment(context: ParserContext): CommentNode | undefined {
   __TEST__ && assert(/^<(?:[\!\?]|\/[^a-z>])/i.test(context.source))
 
@@ -364,7 +370,7 @@ function parseBogusComment(context: ParserContext): CommentNode | undefined {
   }
 }
 
-// 解析DOM元素
+// 解析DOM元素节点,内部会执行parseTag
 function parseElement(
   context: ParserContext,
   ancestors: ElementNode[]
@@ -533,6 +539,7 @@ function parseTag(
   }
 }
 
+// 解析属性
 function parseAttributes(
   context: ParserContext,
   type: TagType
@@ -761,6 +768,24 @@ function parseAttributeValue(
   return { content, isQuoted, loc: getSelection(context, start) }
 }
 
+/** 
+ * 解析双花括号模板,即{{}}
+ * 如 {{ test }}:
+ * 先将双花括号中的内容提取出来，即 test，再对它执行 trim()，去除空格。
+ * 然后会生成两个节点，一个节点是 INTERPOLATION，type 为 5，表示它是双花插值。
+ * 第二个节点是它的内容，即 test，它会生成一个 SIMPLE_EXPRESSION 节点，type 为 4。
+ * return {
+    type: NodeTypes.INTERPOLATION, // 双花插值类型
+    content: {
+      type: NodeTypes.SIMPLE_EXPRESSION, // 表达式类型
+      isStatic: false, // 非静态节点
+      isConstant: false,
+      content,
+      loc: getSelection(context, innerStart, innerEnd)
+    },
+    loc: getSelection(context, start)
+   }
+ */
 function parseInterpolation(
   context: ParserContext,
   mode: TextModes
@@ -805,6 +830,7 @@ function parseInterpolation(
   }
 }
 
+// 解析普通文本
 function parseText(context: ParserContext, mode: TextModes): TextNode {
   __TEST__ && assert(context.source.length > 0)
 
@@ -886,7 +912,7 @@ function startsWith(source: string, searchString: string): boolean {
   return source.startsWith(searchString)
 }
 
-// 光标前进
+// 字符串截断,光标前进
 function advanceBy(context: ParserContext, numberOfCharacters: number): void {
   const { source } = context
   __TEST__ && assert(numberOfCharacters <= source.length)
