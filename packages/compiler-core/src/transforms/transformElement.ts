@@ -55,6 +55,7 @@ import { getStaticType } from './hoistStatic'
 const directiveImportMap = new WeakMap<DirectiveNode, symbol>()
 
 // generate a JavaScript AST for this element's codegen
+// 为此元素的代码生成一个JavaScript AST
 export const transformElement: NodeTransform = (node, context) => {
   if (
     !(

@@ -15,10 +15,11 @@
 
 export const enum PatchFlags {
   // Indicates an element with dynamic textContent (children fast path)
-  // 表示具有动态textContent的元素（子节点快速路径）
+  // 表示具有动态文本的元素（子节点快速路径）
   TEXT = 1,
 
   // Indicates an element with dynamic class binding.
+  // 动态 class
   CLASS = 1 << 1,
 
   // Indicates an element with dynamic style
@@ -27,6 +28,7 @@ export const enum PatchFlags {
   // e.g. style="color: red" and :style="{ color: 'red' }" both get hoisted as
   //   const style = { color: 'red' }
   //   render() { return e('div', { style }) }
+  // 动态 style
   STYLE = 1 << 2,
 
   // Indicates an element that has non-class/style dynamic props.
@@ -34,36 +36,44 @@ export const enum PatchFlags {
   // class/style). when this flag is present, the vnode also has a dynamicProps
   // array that contains the keys of the props that may change so the runtime
   // can diff them faster (without having to worry about removed props)
+  // 动态属性，但不包含类名和样式
+  // 如果是组件，则可以包含类名和样式
   PROPS = 1 << 3,
 
   // Indicates an element with props with dynamic keys. When keys change, a full
   // diff is always needed to remove the old key. This flag is mutually
   // exclusive with CLASS, STYLE and PROPS.
+  // 具有动态 key 属性，当 key 改变时，需要进行完整的 diff 比较。
   FULL_PROPS = 1 << 4,
 
   // Indicates an element with event listeners (which need to be attached
   // during hydration)
-  // 指示具有事件侦听器的元素（在水合期间需要附加）
+  // 带有监听事件的节点
   HYDRATE_EVENTS = 1 << 5,
 
   // Indicates a fragment whose children order doesn't change.
+  // 一个不会改变子节点顺序的 fragment
   STABLE_FRAGMENT = 1 << 6,
 
   // Indicates a fragment with keyed or partially keyed children
+  // 带有 key 属性的 fragment 或部分子字节有 key
   KEYED_FRAGMENT = 1 << 7,
 
   // Indicates a fragment with unkeyed children.
+  // 子节点没有 key 的 fragment
   UNKEYED_FRAGMENT = 1 << 8,
 
   // Indicates an element that only needs non-props patching, e.g. ref or
   // directives (onVnodeXXX hooks). since every patched vnode checks for refs
   // and onVnodeXXX hooks, it simply marks the vnode so that a parent block
   // will track it.
+  // 一个节点只会进行非 props 比较
   NEED_PATCH = 1 << 9,
 
   // Indicates a component with dynamic slots (e.g. slot that references a v-for
   // iterated value, or dynamic slot names).
   // Components with this flag are always force updated.
+  // 动态 slot
   DYNAMIC_SLOTS = 1 << 10,
 
   // SPECIAL FLAGS -------------------------------------------------------------
@@ -75,6 +85,7 @@ export const enum PatchFlags {
 
   // Indicates a hoisted static vnode. This is a hint for hydration to skip
   // the entire sub tree since static content never needs to be updated.
+  // 静态节点
   HOISTED = -1,
 
   // A special flag that indicates that the diffing algorithm should bail out
@@ -82,6 +93,7 @@ export const enum PatchFlags {
   // when encountering non-compiler generated slots (i.e. manually written
   // render functions, which should always be fully diffed)
   // OR manually cloneVNodes
+  // 指示在 diff 过程应该要退出优化模式
   BAIL = -2
 }
 

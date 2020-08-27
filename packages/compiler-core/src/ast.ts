@@ -39,7 +39,7 @@ export const enum NodeTypes {
   FOR,
   TEXT_CALL,
   // codegen
-  VNODE_CALL,
+  VNODE_CALL, // 静态节点
   JS_CALL_EXPRESSION,
   JS_OBJECT_EXPRESSION,
   JS_PROPERTY,
