@@ -178,6 +178,7 @@ function createCodegenContext(
   return context
 }
 
+// 代码生成入口文件
 export function generate(
   ast: RootNode,
   options: CodegenOptions & {
@@ -445,6 +446,7 @@ function genAssets(
   }
 }
 
+// 生成静态节点
 function genHoists(hoists: (JSChildNode | null)[], context: CodegenContext) {
   if (!hoists.length) {
     return
@@ -539,6 +541,7 @@ function genNodeList(
   }
 }
 
+// 生成 Vnode 节点
 function genNode(node: CodegenNode | symbol | string, context: CodegenContext) {
   if (isString(node)) {
     context.push(node)
@@ -585,7 +588,7 @@ function genNode(node: CodegenNode | symbol | string, context: CodegenContext) {
     case NodeTypes.JS_CALL_EXPRESSION:
       genCallExpression(node, context)
       break
-    case NodeTypes.JS_OBJECT_EXPRESSION:
+    case NodeTypes.JS_OBJECT_EXPRESSION:    // 对象表达式
       genObjectExpression(node, context)
       break
     case NodeTypes.JS_ARRAY_EXPRESSION:
@@ -790,6 +793,7 @@ function genArrayExpression(node: ArrayExpression, context: CodegenContext) {
   genNodeListAsArray(node.elements, context)
 }
 
+// 生成函数表达式
 function genFunctionExpression(
   node: FunctionExpression,
   context: CodegenContext

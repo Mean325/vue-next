@@ -14,6 +14,8 @@ export const V_SHOW = Symbol(__DEV__ ? `vShow` : ``)
 export const TRANSITION = Symbol(__DEV__ ? `Transition` : ``)
 export const TRANSITION_GROUP = Symbol(__DEV__ ? `TransitionGroup` : ``)
 
+
+// 往映射表注入了浏览器相关的部分函数
 registerRuntimeHelpers({
   [V_MODEL_RADIO]: `vModelRadio`,
   [V_MODEL_CHECKBOX]: `vModelCheckbox`,

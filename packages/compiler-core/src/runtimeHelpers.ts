@@ -32,6 +32,8 @@ export const WITH_CTX = Symbol(__DEV__ ? `withCtx` : ``)
 // Name mapping for runtime helpers that need to be imported from 'vue' in
 // generated code. Make sure these are correctly exported in the runtime!
 // Using `any` here because TS doesn't allow symbols as index type.
+// 需要在生成的代码中从“ vue”导入的运行时助手的名称映射。 确保它们在运行时中正确导出！
+// 在这里使用`any`，因为TS不允许将符号作为索引类型。
 export const helperNameMap: any = {
   [FRAGMENT]: `Fragment`,
   [TELEPORT]: `Teleport`,
@@ -63,6 +65,8 @@ export const helperNameMap: any = {
   [WITH_CTX]: `withCtx`
 }
 
+
+// compiler-dom 是浏览器相关的编译模块。为了能在浏览器正常运行 Vue 程序，就得把浏览器相关的 Vue 数据和函数导入进来。
 export function registerRuntimeHelpers(helpers: any) {
   Object.getOwnPropertySymbols(helpers).forEach(s => {
     helperNameMap[s] = helpers[s]

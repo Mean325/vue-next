@@ -4,6 +4,7 @@ import { isArray, isObject, isPlainObject } from './index'
  * For converting {{ interpolation }} values to displayed strings.
  * @private
  */
+// 转成字符串输出
 export const toDisplayString = (val: unknown): string => {
   return val == null
     ? ''
