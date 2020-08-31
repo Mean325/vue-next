@@ -128,8 +128,19 @@ export function createTransformContext(
 ): TransformContext {
   const context: TransformContext = {
     // options
+
+    // 代码生成	
+    // 如 {{ foo }} 在 module 模式下生成的代码为 _ctx.foo，而在 function 模式下是 with (this) { ... }。	
+    // 因为在 module 模式下，默认为严格模式，不能使用 with 语句
     prefixIdentifiers,
+
+    // 是否开启静态节点提升	
+    // 当该值为true时，静态节点将被提升到 render() 函数外面生成，并被命名为 _hoisted_x 变量	
+    // 如"一个文本节点"生成的代码为 const _hoisted_2 = /*#__PURE__*/_createTextVNode(" 一个文本节点 ")
     hoistStatic,
+
+    // 是否开启事件缓存, 如@click="foo" 默认编译为 { onClick: foo }	
+    // 如果该值为true时，则编译为{ onClick: _cache[0] || (_cache[0] = e => _ctx.foo(e)) }
     cacheHandlers,
     nodeTransforms,
     directiveTransforms,
@@ -145,10 +156,10 @@ export function createTransformContext(
 
     // state
     root,
-    helpers: new Set(),
+    helpers: new Set(),   // 创建 VNode 的函数名称的Symbol集合
     components: new Set(),
     directives: new Set(),
-    hoists: [],
+    hoists: [],   // 静态节点
     imports: new Set(),
     temps: 0,
     cached: 0,
@@ -275,11 +286,11 @@ export function transform(root: RootNode, options: TransformOptions) {
     createRootCodegen(root, context)
   }
   // finalize meta information
-  root.helpers = [...context.helpers]
+  root.helpers = [...context.helpers]   // 创建 VNode 的函数名称(其实是 Symbol)
   root.components = [...context.components]
   root.directives = [...context.directives]
   root.imports = [...context.imports]
-  root.hoists = context.hoists
+  root.hoists = context.hoists  // 静态节点
   root.temps = context.temps
   root.cached = context.cached
 }
@@ -299,7 +310,7 @@ function createRootCodegen(root: RootNode, context: TransformContext) {
         helper(OPEN_BLOCK)
         helper(CREATE_BLOCK)
       }
-      root.codegenNode = codegenNode
+      root.codegenNode = codegenNode    // 生成代码要用到的数据
     } else {
       // - single <slot/>, IfNode, ForNode: already blocks.
       // - single text node: always patched.

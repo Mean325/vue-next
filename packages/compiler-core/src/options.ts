@@ -113,6 +113,7 @@ export interface TransformOptions {
    * analysis to determine if a handler is safe to cache.
    * @default false
    */
+  // 开启事件函数缓存
   cacheHandlers?: boolean
   /**
    * A list of parser plugins to enable for `@babel/parser`, which is used to
