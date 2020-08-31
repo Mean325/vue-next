@@ -37,10 +37,12 @@ import { isVSlot } from './utils'
 import { hoistStatic, isSingleElementRoot } from './transforms/hoistStatic'
 
 // There are two types of transforms:
-//
+// 有两种类型的转换：
 // - NodeTransform:
 //   Transforms that operate directly on a ChildNode. NodeTransforms may mutate,
 //   replace or remove the node being processed.
+// - 节点转换：
+// 直接在ChildNode上运行的转换。 NodeTransforms可能会变异，替换或删除正在处理的节点。
 export type NodeTransform = (
   node: RootNode | TemplateChildNode,
   context: TransformContext
@@ -49,6 +51,9 @@ export type NodeTransform = (
 // - DirectiveTransform:
 //   Transforms that handles a single directive attribute on an element.
 //   It translates the raw directive into actual props for the VNode.
+// - 指令转换：
+// 处理元素上单个指令属性的转换。
+// 将原始指令转换为VNode的实际道具。
 export type DirectiveTransform = (
   dir: DirectiveNode,
   node: ElementNode,
@@ -58,6 +63,7 @@ export type DirectiveTransform = (
   augmentor?: (ret: DirectiveTransformResult) => DirectiveTransformResult
 ) => DirectiveTransformResult
 
+// 指令转换结果
 export interface DirectiveTransformResult {
   props: Property[]
   needRuntime?: boolean | symbol
@@ -66,6 +72,8 @@ export interface DirectiveTransformResult {
 
 // A structural directive transform is a technically a NodeTransform;
 // Only v-if and v-for fall into this category.
+// 从结构上来讲，结构化指令转换是一个NodeTransform；
+// 只有v-if和v-for属于此类别。
 export type StructuralDirectiveTransform = (
   node: ElementNode,
   dir: DirectiveNode,
@@ -79,10 +87,10 @@ export interface ImportItem {
 
 export interface TransformContext extends Required<TransformOptions> {
   root: RootNode
-  helpers: Set<symbol>
+  helpers: Set<symbol>  // 创建 VNode 的函数名称的Symbol集合
   components: Set<string>
   directives: Set<string>
-  hoists: (JSChildNode | null)[]
+  hoists: (JSChildNode | null)[]  // 静态节点
   imports: Set<ImportItem>
   temps: number
   cached: number
@@ -94,8 +102,8 @@ export interface TransformContext extends Required<TransformOptions> {
     vOnce: number
   }
   parent: ParentNode | null
-  childIndex: number
-  currentNode: RootNode | TemplateChildNode | null
+  childIndex: number    // 子节点数量
+  currentNode: RootNode | TemplateChildNode | null  // 当前节点
   helper<T extends symbol>(name: T): T
   helperString(name: symbol): string
   replaceNode(node: TemplateChildNode): void
@@ -110,11 +118,11 @@ export interface TransformContext extends Required<TransformOptions> {
 export function createTransformContext(
   root: RootNode,
   {
-    prefixIdentifiers = false,
-    hoistStatic = false,
-    cacheHandlers = false,
-    nodeTransforms = [],
-    directiveTransforms = {},
+    prefixIdentifiers = false,  // 代码转化方式,此处为function
+    hoistStatic = false,  // 静态节点提升
+    cacheHandlers = false,  // 事件缓存
+    nodeTransforms = [],  // 节点转换??
+    directiveTransforms = {},  // 指令转换??
     transformHoist = null,
     isBuiltInComponent = NOOP,
     isCustomElement = NOOP,
@@ -175,13 +183,17 @@ export function createTransformContext(
     childIndex: 0,
 
     // methods
+
+    // 添加函数名称的Symbol至数组中
     helper(name) {
       context.helpers.add(name)
       return name
     },
+    // 返回以"_"开头的函数名
     helperString(name) {
       return `_${helperNameMap[context.helper(name)]}`
     },
+    // 替换节点???
     replaceNode(node) {
       /* istanbul ignore if */
       if (__DEV__) {
@@ -192,13 +204,16 @@ export function createTransformContext(
           throw new Error(`Cannot replace root node.`)
         }
       }
+      // 此处的"!"表示一定有值，不为 undefined
       context.parent!.children[context.childIndex] = context.currentNode = node
     },
+    // 移除节点
     removeNode(node) {
       if (__DEV__ && !context.parent) {
         throw new Error(`Cannot remove root node.`)
       }
       const list = context.parent!.children
+      // 如果node不为空则取children中的序号, 没有值且当前节点不为空,则取子节点序号,否则为-1
       const removalIndex = node
         ? list.indexOf(node)
         : context.currentNode
@@ -208,22 +223,27 @@ export function createTransformContext(
       if (__DEV__ && removalIndex < 0) {
         throw new Error(`node being removed is not a child of current parent`)
       }
+      // 节点为空或操作的是当前节点时
+      // 当天节点置为null, 调用onNodeRemoved函数
       if (!node || node === context.currentNode) {
-        // current node removed
+        // 当前节点删除
         context.currentNode = null
         context.onNodeRemoved()
       } else {
-        // sibling node removed
+        // 兄弟节点删除
         if (context.childIndex > removalIndex) {
           context.childIndex--
           context.onNodeRemoved()
         }
       }
+      // 子节点列表中删除该序号的节点
       context.parent!.children.splice(removalIndex, 1)
     },
     onNodeRemoved: () => {},
+    // 添加标识符???
     addIdentifiers(exp) {
       // identifier tracking only happens in non-browser builds.
+      // 标识符跟踪仅在非浏览器版本中发生。
       if (!__BROWSER__) {
         if (isString(exp)) {
           addId(exp)
@@ -234,6 +254,7 @@ export function createTransformContext(
         }
       }
     },
+    // 移除标识符???
     removeIdentifiers(exp) {
       if (!__BROWSER__) {
         if (isString(exp)) {
@@ -245,6 +266,7 @@ export function createTransformContext(
         }
       }
     },
+    // 提升静态节点
     hoist(exp) {
       context.hoists.push(exp)
       const identifier = createSimpleExpression(
@@ -256,11 +278,13 @@ export function createTransformContext(
       identifier.hoisted = exp
       return identifier
     },
+    // 事件缓存???
     cache(exp, isVNode = false) {
       return createCacheExpression(++context.cached, exp, isVNode)
     }
   }
 
+  // 添加标识
   function addId(id: string) {
     const { identifiers } = context
     if (identifiers[id] === undefined) {
@@ -269,6 +293,7 @@ export function createTransformContext(
     identifiers[id]!++
   }
 
+  // 移除标识
   function removeId(id: string) {
     context.identifiers[id]!--
   }
@@ -336,6 +361,7 @@ function createRootCodegen(root: RootNode, context: TransformContext) {
   }
 }
 
+// 遍历子节点???
 export function traverseChildren(
   parent: ParentNode,
   context: TransformContext
@@ -354,6 +380,7 @@ export function traverseChildren(
   }
 }
 
+// 遍历节点
 export function traverseNode(
   node: RootNode | TemplateChildNode,
   context: TransformContext

@@ -100,7 +100,7 @@ export type TemplateChildNode =
 
 export interface RootNode extends Node {
   type: NodeTypes.ROOT
-  children: TemplateChildNode[]
+  children: TemplateChildNode[] // 子节点
   helpers: symbol[]
   components: string[]
   directives: string[]
@@ -577,6 +577,7 @@ export function createVNodeCall(
   }
 }
 
+// 创建数组表达式
 export function createArrayExpression(
   elements: ArrayExpression['elements'],
   loc: SourceLocation = locStub
@@ -588,6 +589,7 @@ export function createArrayExpression(
   }
 }
 
+// 创建对象表达式
 export function createObjectExpression(
   properties: ObjectExpression['properties'],
   loc: SourceLocation = locStub
@@ -599,6 +601,7 @@ export function createObjectExpression(
   }
 }
 
+// 创建对象属性
 export function createObjectProperty(
   key: Property['key'] | string,
   value: Property['value']
@@ -611,6 +614,7 @@ export function createObjectProperty(
   }
 }
 
+// 创建简单表达式
 export function createSimpleExpression(
   content: SimpleExpressionNode['content'],
   isStatic: SimpleExpressionNode['isStatic'],
@@ -626,6 +630,7 @@ export function createSimpleExpression(
   }
 }
 
+// 创建插值
 export function createInterpolation(
   content: InterpolationNode['content'] | string,
   loc: SourceLocation
