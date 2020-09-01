@@ -617,9 +617,9 @@ export function createObjectProperty(
 // 创建简单表达式
 export function createSimpleExpression(
   content: SimpleExpressionNode['content'],
-  isStatic: SimpleExpressionNode['isStatic'],
-  loc: SourceLocation = locStub,
-  isConstant: boolean = false
+  isStatic: SimpleExpressionNode['isStatic'],   // 是否为静态节点
+  loc: SourceLocation = locStub,  // 定位
+  isConstant: boolean = false   // 是否为常量
 ): SimpleExpressionNode {
   return {
     type: NodeTypes.SIMPLE_EXPRESSION,

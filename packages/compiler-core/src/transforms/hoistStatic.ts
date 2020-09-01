@@ -15,6 +15,7 @@ import { TransformContext } from '../transform'
 import { PatchFlags, isString, isSymbol } from '@vue/shared'
 import { isSlotOutlet, findProp } from '../utils'
 
+// 提升静态节点
 export function hoistStatic(root: RootNode, context: TransformContext) {
   walk(
     root,
@@ -38,19 +39,21 @@ export function isSingleElementRoot(
   )
 }
 
+// 静态类别枚举
 const enum StaticType {
-  NOT_STATIC = 0,
-  FULL_STATIC,
-  HAS_RUNTIME_CONSTANT
+  NOT_STATIC = 0,   // 不静态
+  FULL_STATIC,    // 全静态
+  HAS_RUNTIME_CONSTANT  // 有运行常数 
 }
 
+// 运行???
 function walk(
   node: ParentNode,
   context: TransformContext,
-  resultCache: Map<TemplateChildNode, StaticType>,
-  doNotHoistNode: boolean = false
+  resultCache: Map<TemplateChildNode, StaticType>,  // 结果缓存
+  doNotHoistNode: boolean = false   // 不提升节点
 ) {
-  let hasHoistedNode = false
+  let hasHoistedNode = false  // 是否有提升的节点
   // Some transforms, e.g. transformAssetUrls from @vue/compiler-sfc, replaces
   // static bindings with expressions. These expressions are guaranteed to be
   // constant so they are still eligible for hoisting, but they are only
@@ -59,34 +62,46 @@ function walk(
   // @vue/compiler-dom), but doing it here allows us to perform only one full
   // walk of the AST and allow `stringifyStatic` to stop walking as soon as its
   // stringficiation threshold is met.
-  let hasRuntimeConstant = false
+  // 一些转换，例如 @ vue / compiler-sfc中的transformAssetUrls用表达式替换静态绑定。
+  // 这些表达式被保证是恒定的，因此它们仍然可以提升，但是它们仅在运行时可用，因此无法提前进行评估。
+  // 这只是预字符串化的一个问题（通过transformHoist by @ vue / compiler-dom），但是在这里这样做
+  // 只能让我们执行一次AST的完整遍历，并允许`stringifyStatic`在达到其字符串化阈值后立即停止行走。???
+  let hasRuntimeConstant = false  // 是否有运行常数 
 
-  const { children } = node
+  const { children } = node   // 获取子节点列表
   for (let i = 0; i < children.length; i++) {
     const child = children[i]
     // only plain elements & text calls are eligible for hoisting.
+    // 只有普通元素和文本调用才能进行提升
+
+    // 当子节点为元素节点时
     if (
       child.type === NodeTypes.ELEMENT &&
       child.tagType === ElementTypes.ELEMENT
     ) {
-      let staticType
+      let staticType    // 静态类型
+      // 如果不提升节点且静态类型大于0
       if (
         !doNotHoistNode &&
         (staticType = getStaticType(child, resultCache)) > 0
       ) {
+        // 有运行常数时
         if (staticType === StaticType.HAS_RUNTIME_CONSTANT) {
           hasRuntimeConstant = true
         }
-        // whole tree is static
+        // 整棵树是静态的
+        // <div>good job!</div>转化为_createVNode("div", null, "good job!", -1 /* HOISTED */)
         ;(child.codegenNode as VNodeCall).patchFlag =
           PatchFlags.HOISTED + (__DEV__ ? ` /* HOISTED */` : ``)
-        child.codegenNode = context.hoist(child.codegenNode!)
+        child.codegenNode = context.hoist(child.codegenNode!)   // 调用context中自带的提升方法
         hasHoistedNode = true
         continue
       } else {
         // node may contain dynamic children, but its props may be eligible for
         // hoisting.
+        // 节点可能包含动态子节点，但它的props可能静态提升。
         const codegenNode = child.codegenNode!
+        // 编辑节点类型为静态节点时
         if (codegenNode.type === NodeTypes.VNODE_CALL) {
           const flag = getPatchFlag(codegenNode)
           if (
@@ -104,6 +119,7 @@ function walk(
         }
       }
     } else if (child.type === NodeTypes.TEXT_CALL) {
+      // 当子节点为文本调用时
       const staticType = getStaticType(child.content, resultCache)
       if (staticType > 0) {
         if (staticType === StaticType.HAS_RUNTIME_CONSTANT) {
@@ -138,6 +154,7 @@ function walk(
   }
 }
 
+// 获取静态类型
 export function getStaticType(
   node: TemplateChildNode | SimpleExpressionNode,
   resultCache: Map<TemplateChildNode, StaticType> = new Map()

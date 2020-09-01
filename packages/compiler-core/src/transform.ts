@@ -266,7 +266,8 @@ export function createTransformContext(
         }
       }
     },
-    // 提升静态节点
+    // 提升静态节点操作
+    // 在./transforms/hoistStatic.ts中调用
     hoist(exp) {
       context.hoists.push(exp)
       const identifier = createSimpleExpression(
@@ -301,9 +302,11 @@ export function createTransformContext(
   return context
 }
 
+// 转换
 export function transform(root: RootNode, options: TransformOptions) {
-  const context = createTransformContext(root, options)
-  traverseNode(root, context)
+  const context = createTransformContext(root, options)   // 创建转化内容
+  traverseNode(root, context)   // 遍历节点
+  // 当静态节点提升为true时
   if (options.hoistStatic) {
     hoistStatic(root, context)
   }
