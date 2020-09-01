@@ -33,13 +33,13 @@ export const enum NodeTypes {
   ATTRIBUTE, // HTML普通属性 6
   DIRECTIVE, // Vue指令 7
   // containers
-  COMPOUND_EXPRESSION,
+  COMPOUND_EXPRESSION,  // 复合表达式
   IF,
   IF_BRANCH,
   FOR,
-  TEXT_CALL,
+  TEXT_CALL,  // 文本调用
   // codegen
-  VNODE_CALL, // 静态节点
+  VNODE_CALL, // 静态节点, props
   JS_CALL_EXPRESSION,
   JS_OBJECT_EXPRESSION,
   JS_PROPERTY,
@@ -211,6 +211,8 @@ export interface SimpleExpressionNode extends Node {
    * some expressions (e.g. transformAssetUrls import identifiers) are constant,
    * but cannot be stringified because they must be first evaluated at runtime.
    */
+  // 一些表达式（例如transformAssetUrls导入标识符）是常量
+  // 但不能进行字符串化，因为必须首先在运行时对其进行求值。
   isRuntimeConstant?: boolean
 }
 

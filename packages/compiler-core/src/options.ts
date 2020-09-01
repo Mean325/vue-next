@@ -76,6 +76,8 @@ export interface TransformOptions {
    * used by compiler-dom to turn hoisted nodes into stringified HTML vnodes.
    * @default null
    */
+  // 可选的挂钩，用于转换要转换的节点。
+  // 由compiler-dom用于将提升的节点转换为字符串化的HTML vnode。
   transformHoist?: HoistTransform | null
   /**
    * If the pairing runtime provides additional built-in elements, use this to
