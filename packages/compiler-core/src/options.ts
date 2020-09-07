@@ -8,6 +8,7 @@ import {
 } from './transform'
 import { ParserPlugin } from '@babel/parser'
 
+// 解析配置
 export interface ParserOptions {
   /**
    * e.g. platform native elements, e.g. `<div>` for browsers
@@ -61,6 +62,7 @@ export interface BindingMetadata {
   [key: string]: 'data' | 'props' | 'setup' | 'options'
 }
 
+// 转换配置
 export interface TransformOptions {
   /**
    * An array of node transforms to be applied to every AST node.
@@ -146,6 +148,7 @@ export interface TransformOptions {
   onError?: (error: CompilerError) => void
 }
 
+// 编译配置
 export interface CodegenOptions {
   /**
    * - `module` mode will generate ES module import statements for helpers
@@ -156,42 +159,59 @@ export interface CodegenOptions {
    * used with `new Function(code)()` to generate a render function at runtime.
    * @default 'function'
    */
+  /**
+   * - `module`模式将为helpers生成ES模块导入语句，并将render函数导出为默认导出。
+   * - 函数模式将生成单个const {helpers ...} = Vue语句并返回render函数。
+   * 它期望`Vue`可以在全局范围内使用（或通过使用IIFE包装代码来通过）
+   * 它打算与`new Function(code)()`一起使用，以在运行时生成渲染函数。
+   * @默认为'function'
+   */
   mode?: 'module' | 'function'
   /**
    * Generate source map?
    * @default false
    */
+  // 生成源码map???
   sourceMap?: boolean
   /**
    * Filename for source map generation.
    * @default 'template.vue.html'
    */
+  // 用于生成源映射的文件名???
   filename?: string
   /**
    * SFC scoped styles ID
    */
+  // SFC范围样式ID
   scopeId?: string | null
   /**
    * Option to optimize helper import bindings via variable assignment
    * (only used for webpack code-split)
    * @default false
    */
+  // * 通过变量分配来优化助手导入绑定的选项
+  // *（仅用于webpack代码拆分）
   optimizeImports?: boolean
   /**
    * Customize where to import runtime helpers from.
    * @default 'vue'
    */
+  // 运行时模块名称,默认为Vue
   runtimeModuleName?: string
   /**
    * Customize the global variable name of `Vue` to get helpers from
    * in function mode
    * @default 'Vue'
    */
+  // 运行时全局名称,默认为Vue
   runtimeGlobalName?: string
   // we need to know this during codegen to generate proper preambles
+  // 我们需要在代码生成过程中知道这一点，以生成适当的前同步码???
   prefixIdentifiers?: boolean
+  // 绑定元数据???
   bindingMetadata?: BindingMetadata
   // generate ssr-specific code?
+  // 生成特定于ssr的代码???
   ssr?: boolean
 }
 

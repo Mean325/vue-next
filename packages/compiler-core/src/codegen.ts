@@ -58,12 +58,14 @@ const PURE_ANNOTATION = `/*#__PURE__*/`
 
 type CodegenNode = TemplateChildNode | JSChildNode | SSRCodegenNode
 
+// 编辑结果
 export interface CodegenResult {
   code: string
   ast: RootNode
   map?: RawSourceMap
 }
 
+// 编译的内容
 export interface CodegenContext
   extends Omit<Required<CodegenOptions>, 'bindingMetadata'> {
   source: string
@@ -81,18 +83,19 @@ export interface CodegenContext
   newline(): void
 }
 
+// 创建编译内容
 function createCodegenContext(
   ast: RootNode,
   {
-    mode = 'function',
-    prefixIdentifiers = mode === 'module',
+    mode = 'function',  // 编译方式
+    prefixIdentifiers = mode === 'module',  // 前缀标识符???
     sourceMap = false,
-    filename = `template.vue.html`,
-    scopeId = null,
-    optimizeImports = false,
-    runtimeGlobalName = `Vue`,
-    runtimeModuleName = `vue`,
-    ssr = false
+    filename = `template.vue.html`,   // 文件名
+    scopeId = null, // scope样式id
+    optimizeImports = false,  // 优化导入
+    runtimeGlobalName = `Vue`,  // 运行时全局名
+    runtimeModuleName = `vue`,  // 运行时方法名
+    ssr = false // 是否用于ssr
   }: CodegenOptions
 ): CodegenContext {
   const context: CodegenContext = {
