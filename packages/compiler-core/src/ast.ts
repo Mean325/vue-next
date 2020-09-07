@@ -541,6 +541,7 @@ export function createRoot(
   }
 }
 
+// 创建VNode调用
 export function createVNodeCall(
   context: TransformContext | null,
   tag: VNodeCall['tag'],
@@ -554,14 +555,14 @@ export function createVNodeCall(
   loc = locStub
 ): VNodeCall {
   if (context) {
-    if (isBlock) {
-      context.helper(OPEN_BLOCK)
+    if (isBlock) {  // 如果是块
+      context.helper(OPEN_BLOCK)  // helper中新增openBlock和createBlock函数名
       context.helper(CREATE_BLOCK)
     } else {
-      context.helper(CREATE_VNODE)
+      context.helper(CREATE_VNODE)  // 不为块时,新增createVnode函数名
     }
-    if (directives) {
-      context.helper(WITH_DIRECTIVES)
+    if (directives) {   // 当有vue指令时
+      context.helper(WITH_DIRECTIVES)   // 新增withDirectives函数名
     }
   }
 

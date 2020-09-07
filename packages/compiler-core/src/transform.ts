@@ -89,7 +89,7 @@ export interface TransformContext extends Required<TransformOptions> {
   root: RootNode
   helpers: Set<symbol>  // 创建 VNode 的函数名称的Symbol集合
   components: Set<string>
-  directives: Set<string>
+  directives: Set<string>   // vue指令
   hoists: (JSChildNode | null)[]  // 静态节点
   imports: Set<ImportItem>
   temps: number
@@ -145,10 +145,14 @@ export function createTransformContext(
     // 是否开启静态节点提升	
     // 当该值为true时，静态节点将被提升到 render() 函数外面生成，并被命名为 _hoisted_x 变量	
     // 如"一个文本节点"生成的代码为 const _hoisted_2 = /*#__PURE__*/_createTextVNode(" 一个文本节点 ")
+    // 每次渲染时候被不停的复用，这样就免去了重复的创建节点，大型应用会受益于这个改动，免去了重复的创建操作，优化了运行时候的内存占用
     hoistStatic,
 
     // 是否开启事件缓存, 如@click="foo" 默认编译为 { onClick: foo }	
     // 如果该值为true时，则编译为{ onClick: _cache[0] || (_cache[0] = e => _ctx.foo(e)) }
+    // 使用cacheHandlers，在第一次渲染时会自动生成一个内联的函数，在内联函数里面引用当前的fn，
+    // 然后把内联函数cache起来，后续的更新会从缓存中读同一个函数，因为是同一个函数，也就没有追踪变化的必要，
+    // 这样把node变成了静态的。手写的内联函数也会被cache起来，这样就会避免一些没必要的更新
     cacheHandlers,
     nodeTransforms,
     directiveTransforms,
@@ -157,6 +161,9 @@ export function createTransformContext(
     isCustomElement,
     expressionPlugins,
     scopeId,
+    
+    // 当有大量静态的内容时候，这些内容会被当做纯字符串推进一个buffer里面，即使存在动态的绑定
+    // 例如会通过模板插值嵌入进去。这样会比通过虚拟dom来渲染的快上很多很多
     ssr,
     ssrCssVars,
     bindingMetadata,
@@ -314,13 +321,14 @@ export function transform(root: RootNode, options: TransformOptions) {
     createRootCodegen(root, context)
   }
   // finalize meta information
-  root.helpers = [...context.helpers]   // 创建 VNode 的函数名称(其实是 Symbol)
-  root.components = [...context.components]
-  root.directives = [...context.directives]
-  root.imports = [...context.imports]
+  // 完成meta信息
+  root.helpers = [...context.helpers]   // 创建VNode所用到的函数名称(其实是 Symbol)
+  root.components = [...context.components]   // 组件???
+  root.directives = [...context.directives]   // vue指令
+  root.imports = [...context.imports]   // 引入???
   root.hoists = context.hoists  // 静态节点
-  root.temps = context.temps
-  root.cached = context.cached
+  root.temps = context.temps  // ???
+  root.cached = context.cached  // ???
 }
 
 function createRootCodegen(root: RootNode, context: TransformContext) {
@@ -349,15 +357,15 @@ function createRootCodegen(root: RootNode, context: TransformContext) {
     // root has multiple nodes - return a fragment block.
     root.codegenNode = createVNodeCall(
       context,
-      helper(FRAGMENT),
-      undefined,
-      root.children,
+      helper(FRAGMENT),  // Fragment的Symbol
+      undefined,  // props为空
+      root.children,  // 子节点
       `${PatchFlags.STABLE_FRAGMENT} /* ${
         PatchFlagNames[PatchFlags.STABLE_FRAGMENT]
-      } */`,
-      undefined,
-      undefined,
-      true
+      } */`,  // patchflags为 64 /* STABLE_FRAGMENT */代表 一个不会改变子节点顺序的 fragment
+      undefined,  // 动态props为空
+      undefined,  // vue指令为空
+      true  // 是块
     )
   } else {
     // no children = noop. codegen will return null.
@@ -446,6 +454,7 @@ export function traverseNode(
   }
 }
 
+// 创建结构指令转换???
 export function createStructuralDirectiveTransform(
   name: string | RegExp,
   fn: StructuralDirectiveTransform
