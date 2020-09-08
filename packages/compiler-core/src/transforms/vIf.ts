@@ -80,25 +80,28 @@ export const transformIf = createStructuralDirectiveTransform(
 )
 
 // target-agnostic transform used for both Client and SSR
+// 目标无关的转换用于客户端和SSR
+// 处理If
 export function processIf(
-  node: ElementNode,
-  dir: DirectiveNode,
-  context: TransformContext,
+  node: ElementNode,  // 元素节点
+  dir: DirectiveNode,   // 指令节点
+  context: TransformContext,  // 转换内容
   processCodegen?: (
     node: IfNode,
     branch: IfBranchNode,
     isRoot: boolean
-  ) => (() => void) | undefined
+  ) => (() => void) | undefined   // 处理编译的函数
 ) {
   if (
     dir.name !== 'else' &&
     (!dir.exp || !(dir.exp as SimpleExpressionNode).content.trim())
   ) {
-    const loc = dir.exp ? dir.exp.loc : node.loc
+    // 当指令名称不为else,且exp中的内容不为空,即v-else后带有参数时,给出报错信息
+    const loc = dir.exp ? dir.exp.loc : node.loc  // 获取指令节点的位置信息
     context.onError(
       createCompilerError(ErrorCodes.X_V_IF_NO_EXPRESSION, dir.loc)
     )
-    dir.exp = createSimpleExpression(`true`, false, loc)
+    dir.exp = createSimpleExpression(`true`, false, loc)  // ???
   }
 
   if (!__BROWSER__ && context.prefixIdentifiers && dir.exp) {
