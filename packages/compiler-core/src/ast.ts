@@ -179,34 +179,38 @@ export interface AttributeNode extends Node {
   value: TextNode | undefined
 }
 
+// 指令节点
 export interface DirectiveNode extends Node {
-  type: NodeTypes.DIRECTIVE
-  name: string
-  exp: ExpressionNode | undefined
-  arg: ExpressionNode | undefined
-  modifiers: string[]
+  type: NodeTypes.DIRECTIVE   // 节点类型,此处为Vue指令
+  name: string  // 指令名称
+  exp: ExpressionNode | undefined   // 表达式
+  arg: ExpressionNode | undefined   // 参数
+  modifiers: string[]   // 修饰符,如.prevent, .once等
   /**
    * optional property to cache the expression parse result for v-for
+   * 可选属性，用于缓存v-for的表达式解析结果
    */
-  parseResult?: ForParseResult
+  parseResult?: ForParseResult  // For的解析结果
 }
 
 // 简单表达式节点
 export interface SimpleExpressionNode extends Node {
   type: NodeTypes.SIMPLE_EXPRESSION
-  content: string
+  content: string   // 内容
   isStatic: boolean // 是否为静态节点，静态节点只会生成一次，并且在后面的阶段一直复用同一个，不用进行 diff 比较
   isConstant: boolean
   /**
    * Indicates this is an identifier for a hoist vnode call and points to the
    * hoisted node.
+   * 指示是否提升vnode调用的标识符，并指向提升的节点。
    */
-  hoisted?: JSChildNode
+  hoisted?: JSChildNode   // 是否为静态提升
   /**
    * an expression parsed as the params of a function will track
    * the identifiers declared inside the function body.
+   * 解析为函数参数的表达式将跟踪在函数体内声明的标识符。
    */
-  identifiers?: string[]
+  identifiers?: string[]  // 标识符
   /**
    * some expressions (e.g. transformAssetUrls import identifiers) are constant,
    * but cannot be stringified because they must be first evaluated at runtime.
@@ -221,6 +225,7 @@ export interface InterpolationNode extends Node {
   content: ExpressionNode
 }
 
+// 复合表达式节点
 export interface CompoundExpressionNode extends Node {
   type: NodeTypes.COMPOUND_EXPRESSION
   children: (
@@ -238,12 +243,14 @@ export interface CompoundExpressionNode extends Node {
   identifiers?: string[]
 }
 
+// IF节点
 export interface IfNode extends Node {
   type: NodeTypes.IF
   branches: IfBranchNode[]
   codegenNode?: IfConditionalExpression
 }
 
+// IF节点分支,即ELSE
 export interface IfBranchNode extends Node {
   type: NodeTypes.IF_BRANCH
   condition: ExpressionNode | undefined // else
@@ -541,6 +548,7 @@ export function createRoot(
   }
 }
 
+// 创建VNode调用
 export function createVNodeCall(
   context: TransformContext | null,
   tag: VNodeCall['tag'],
@@ -554,14 +562,14 @@ export function createVNodeCall(
   loc = locStub
 ): VNodeCall {
   if (context) {
-    if (isBlock) {
-      context.helper(OPEN_BLOCK)
+    if (isBlock) {  // 如果是块
+      context.helper(OPEN_BLOCK)  // helper中新增openBlock和createBlock函数名
       context.helper(CREATE_BLOCK)
     } else {
-      context.helper(CREATE_VNODE)
+      context.helper(CREATE_VNODE)  // 不为块时,新增createVnode函数名
     }
-    if (directives) {
-      context.helper(WITH_DIRECTIVES)
+    if (directives) {   // 当有vue指令时
+      context.helper(WITH_DIRECTIVES)   // 新增withDirectives函数名
     }
   }
 

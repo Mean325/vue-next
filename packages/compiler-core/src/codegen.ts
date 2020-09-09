@@ -58,41 +58,44 @@ const PURE_ANNOTATION = `/*#__PURE__*/`
 
 type CodegenNode = TemplateChildNode | JSChildNode | SSRCodegenNode
 
+// 编辑结果
 export interface CodegenResult {
   code: string
   ast: RootNode
   map?: RawSourceMap
 }
 
+// 编译的内容
 export interface CodegenContext
   extends Omit<Required<CodegenOptions>, 'bindingMetadata'> {
-  source: string
+  source: string  // 源码
   code: string
-  line: number
-  column: number
-  offset: number
-  indentLevel: number
-  pure: boolean
+  line: number  // 行
+  column: number  // 列
+  offset: number  // 移动/偏移
+  indentLevel: number // 缩进数
+  pure: boolean   // 纯粹???
   map?: SourceMapGenerator
-  helper(key: symbol): string
-  push(code: string, node?: CodegenNode): void
-  indent(): void
-  deindent(withoutNewLine?: boolean): void
-  newline(): void
+  helper(key: symbol): string   // 需要用到的函数名
+  push(code: string, node?: CodegenNode): void  // ???
+  indent(): void  // 缩进???
+  deindent(withoutNewLine?: boolean): void  // 渐隐???
+  newline(): void // 新起一行
 }
 
+// 创建编译内容
 function createCodegenContext(
   ast: RootNode,
   {
-    mode = 'function',
-    prefixIdentifiers = mode === 'module',
+    mode = 'function',  // 编译方式
+    prefixIdentifiers = mode === 'module',  // 前缀标识符???
     sourceMap = false,
-    filename = `template.vue.html`,
-    scopeId = null,
-    optimizeImports = false,
-    runtimeGlobalName = `Vue`,
-    runtimeModuleName = `vue`,
-    ssr = false
+    filename = `template.vue.html`,   // 文件名
+    scopeId = null, // scope样式id
+    optimizeImports = false,  // 优化导入
+    runtimeGlobalName = `Vue`,  // 运行时全局名
+    runtimeModuleName = `vue`,  // 运行时方法名
+    ssr = false // 是否用于ssr
   }: CodegenOptions
 ): CodegenContext {
   const context: CodegenContext = {
@@ -185,7 +188,7 @@ export function generate(
     onContextCreated?: (context: CodegenContext) => void
   } = {}
 ): CodegenResult {
-  const context = createCodegenContext(ast, options)
+  const context = createCodegenContext(ast, options)  // 创建编译内容
   if (options.onContextCreated) options.onContextCreated(context)
   const {
     mode,
@@ -296,6 +299,7 @@ export function generate(
   }
 }
 
+// 生成函数引用
 function genFunctionPreamble(ast: RootNode, context: CodegenContext) {
   const {
     ssr,
@@ -454,7 +458,7 @@ function genHoists(hoists: (JSChildNode | null)[], context: CodegenContext) {
   context.pure = true
   const { push, newline, helper, scopeId, mode } = context
   const genScopeId = !__BROWSER__ && scopeId != null && mode !== 'function'
-  newline()
+  newline()   // 换行
 
   // push scope Id before initializing hoisted vnodes so that these vnodes
   // get the proper scopeId as well.
@@ -463,6 +467,7 @@ function genHoists(hoists: (JSChildNode | null)[], context: CodegenContext) {
     newline()
   }
 
+  // 遍历静态节点
   hoists.forEach((exp, i) => {
     if (exp) {
       push(`const _hoisted_${i + 1} = `)
@@ -638,6 +643,7 @@ function genNode(node: CodegenNode | symbol | string, context: CodegenContext) {
   }
 }
 
+// 编译文本
 function genText(
   node: TextNode | SimpleExpressionNode,
   context: CodegenContext
@@ -645,6 +651,7 @@ function genText(
   context.push(JSON.stringify(node.content), node)
 }
 
+// 编译表达式
 function genExpression(node: SimpleExpressionNode, context: CodegenContext) {
   const { content, isStatic } = node
   context.push(isStatic ? JSON.stringify(content) : content, node)
@@ -759,6 +766,7 @@ function genCallExpression(node: CallExpression, context: CodegenContext) {
   push(`)`)
 }
 
+// 编译对象表达式
 function genObjectExpression(node: ObjectExpression, context: CodegenContext) {
   const { push, indent, deindent, newline } = context
   const { properties } = node
