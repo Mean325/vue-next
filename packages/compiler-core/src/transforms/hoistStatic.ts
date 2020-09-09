@@ -27,6 +27,8 @@ export function hoistStatic(root: RootNode, context: TransformContext) {
   )
 }
 
+// 是否为单元素节点
+// 子节点只有一个,且为元素节点,且不是插槽插座
 export function isSingleElementRoot(
   root: RootNode,
   child: TemplateChildNode

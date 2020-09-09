@@ -104,7 +104,7 @@ export interface TransformContext extends Required<TransformOptions> {
   parent: ParentNode | null
   childIndex: number    // 子节点数量
   currentNode: RootNode | TemplateChildNode | null  // 当前节点
-  helper<T extends symbol>(name: T): T
+  helper<T extends symbol>(name: T): T   // 添加函数名称的Symbol至数组中
   helperString(name: symbol): string
   replaceNode(node: TemplateChildNode): void
   removeNode(node?: TemplateChildNode): void
@@ -310,6 +310,7 @@ export function transform(root: RootNode, options: TransformOptions) {
   if (options.hoistStatic) {
     hoistStatic(root, context)
   }
+  // 当非服务端渲染时
   if (!options.ssr) {
     createRootCodegen(root, context)
   }
@@ -323,30 +324,37 @@ export function transform(root: RootNode, options: TransformOptions) {
   root.cached = context.cached
 }
 
+// 创建root编译
 function createRootCodegen(root: RootNode, context: TransformContext) {
   const { helper } = context
   const { children } = root
   const child = children[0]
   if (children.length === 1) {
-    // if the single child is an element, turn it into a block.
+    // 如果是一个单元素节点，则将其变成一个块。
     if (isSingleElementRoot(root, child) && child.codegenNode) {
       // single element root is never hoisted so codegenNode will never be
       // SimpleExpressionNode
+      // 单个元素root永远不会提升，因此codegenNode永远不会是SimpleExpressionNode
       const codegenNode = child.codegenNode
+      // 编辑节点类型为静态节点时???
       if (codegenNode.type === NodeTypes.VNODE_CALL) {
         codegenNode.isBlock = true
-        helper(OPEN_BLOCK)
-        helper(CREATE_BLOCK)
+        helper(OPEN_BLOCK)  // 添加函数名称的Symbol至数组中
+        helper(CREATE_BLOCK)  // 添加函数名称的Symbol至数组中
       }
       root.codegenNode = codegenNode    // 生成代码要用到的数据
     } else {
       // - single <slot/>, IfNode, ForNode: already blocks.
       // - single text node: always patched.
       // root codegen falls through via genNode()
+      // -单个<slot />，IfNode，ForNode：已阻塞。
+      // -单个文本节点：始终patched。
+      // 根代码生成通过genNode（）插入
       root.codegenNode = child
     }
   } else if (children.length > 1) {
     // root has multiple nodes - return a fragment block.
+    // root有多个节点-返回片段块。
     root.codegenNode = createVNodeCall(
       context,
       helper(FRAGMENT),

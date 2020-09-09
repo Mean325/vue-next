@@ -200,6 +200,7 @@ export function isTemplateNode(
   )
 }
 
+// 是否为插槽插座
 export function isSlotOutlet(
   node: RootNode | TemplateChildNode
 ): node is SlotOutletNode {
