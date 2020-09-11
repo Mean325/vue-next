@@ -18,6 +18,7 @@ import {
 export const transformModel: DirectiveTransform = (dir, node, context) => {
   const { exp, arg } = dir
   if (!exp) {
+    // v-model缺少表达式
     context.onError(
       createCompilerError(ErrorCodes.X_V_MODEL_NO_EXPRESSION, dir.loc)
     )
@@ -28,6 +29,7 @@ export const transformModel: DirectiveTransform = (dir, node, context) => {
     exp.type === NodeTypes.SIMPLE_EXPRESSION ? exp.content : exp.loc.source
 
   if (!isMemberExpression(expString)) {
+    // v-model值必须是有效的JavaScript成员表达式。
     context.onError(
       createCompilerError(ErrorCodes.X_V_MODEL_MALFORMED_EXPRESSION, exp.loc)
     )
@@ -40,6 +42,7 @@ export const transformModel: DirectiveTransform = (dir, node, context) => {
     isSimpleIdentifier(expString) &&
     context.identifiers[expString]
   ) {
+    // v-model不能用于v-for或v-slot范围变量，因为它们不可写。
     context.onError(
       createCompilerError(ErrorCodes.X_V_MODEL_ON_SCOPE_VARIABLE, exp.loc)
     )
@@ -64,6 +67,7 @@ export const transformModel: DirectiveTransform = (dir, node, context) => {
   ]
 
   // cache v-model handler if applicable (when it doesn't refer any scope vars)
+  // 如果可以,缓存v模型处理程序（不引用任何范围变量时）???
   if (
     !__BROWSER__ &&
     context.prefixIdentifiers &&
@@ -73,7 +77,7 @@ export const transformModel: DirectiveTransform = (dir, node, context) => {
     props[1].value = context.cache(props[1].value)
   }
 
-  // modelModifiers: { foo: true, "bar-baz": true }
+  // modelModifiers: { foo: true, "bar-baz": true } ???
   if (dir.modifiers.length && node.tagType === ElementTypes.COMPONENT) {
     const modifiers = dir.modifiers
       .map(m => (isSimpleIdentifier(m) ? m : JSON.stringify(m)) + `: true`)

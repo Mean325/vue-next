@@ -56,6 +56,7 @@ export const isSimpleIdentifier = (name: string): boolean =>
   !nonIdentifierRE.test(name)
 
 const memberExpRE = /^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*|\[[^\]]+\])*$/
+// 是否成员表达式
 export const isMemberExpression = (path: string): boolean => {
   if (!path) return false
   return memberExpRE.test(path.trim())
@@ -131,10 +132,11 @@ export function assert(condition: boolean, msg?: string) {
   }
 }
 
+// 查找指定属性
 export function findDir(
-  node: ElementNode,
-  name: string | RegExp,
-  allowEmpty: boolean = false
+  node: ElementNode,  // 节点
+  name: string | RegExp,  // 查找的属性名
+  allowEmpty: boolean = false // 允许为空
 ): DirectiveNode | undefined {
   for (let i = 0; i < node.props.length; i++) {
     const p = node.props[i]
@@ -143,30 +145,38 @@ export function findDir(
       (allowEmpty || p.exp) &&
       (isString(name) ? p.name === name : name.test(p.name))
     ) {
+      // 当属性为vue指令
+      // 有表达式或允许为空
+      // 字符串或正则表达式匹配
       return p
     }
   }
 }
 
+// 查找props属性，包含HTML属性和指令
 export function findProp(
-  node: ElementNode,
-  name: string,
-  dynamicOnly: boolean = false,
-  allowEmpty: boolean = false
+  node: ElementNode,  // 节点
+  name: string, // 查找的属性名
+  dynamicOnly: boolean = false, // 仅动态属性
+  allowEmpty: boolean = false // 允许为空
 ): ElementNode['props'][0] | undefined {
   for (let i = 0; i < node.props.length; i++) {
     const p = node.props[i]
+    // 如果为仅动态时,跳过所有的HTML普通属性
     if (p.type === NodeTypes.ATTRIBUTE) {
-      if (dynamicOnly) continue
-      if (p.name === name && (p.value || allowEmpty)) {
+      if (dynamicOnly) continue   
+      if (p.name === name && (p.value || allowEmpty)) { 
         return p
       }
     } else if (p.name === 'bind' && p.exp && isBindKey(p.arg, name)) {
+      // 属性不为HTML普通属性时
+      // 指令为bind,且表达式不为空,且???
       return p
     }
   }
 }
 
+// 是否为bind的key???
 export function isBindKey(arg: DirectiveNode['arg'], name: string): boolean {
   return !!(arg && isStaticExp(arg) && arg.content === name)
 }

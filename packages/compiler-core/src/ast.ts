@@ -34,15 +34,15 @@ export const enum NodeTypes {
   DIRECTIVE, // Vue指令 7
   // containers
   COMPOUND_EXPRESSION,  // 复合表达式
-  IF,
-  IF_BRANCH,
+  IF,   // v-if
+  IF_BRANCH,  // v-else
   FOR,
   TEXT_CALL,  // 文本调用
   // codegen
   VNODE_CALL, // 静态节点, props
   JS_CALL_EXPRESSION,
   JS_OBJECT_EXPRESSION,
-  JS_PROPERTY,
+  JS_PROPERTY,  // JS属性
   JS_ARRAY_EXPRESSION,
   JS_FUNCTION_EXPRESSION,
   JS_CONDITIONAL_EXPRESSION,
@@ -331,6 +331,7 @@ export interface ObjectExpression extends Node {
   properties: Array<Property>
 }
 
+// 属性
 export interface Property extends Node {
   type: NodeTypes.JS_PROPERTY
   key: ExpressionNode
@@ -654,6 +655,7 @@ export function createInterpolation(
   }
 }
 
+// 创建复合表达式
 export function createCompoundExpression(
   children: CompoundExpressionNode['children'],
   loc: SourceLocation = locStub
