@@ -36,7 +36,7 @@ export const enum NodeTypes {
   COMPOUND_EXPRESSION,  // 复合表达式
   IF,   // v-if
   IF_BRANCH,  // v-else
-  FOR,
+  FOR,  // v-for
   TEXT_CALL,  // 文本调用
   // codegen
   VNODE_CALL, // 静态节点, props

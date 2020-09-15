@@ -178,17 +178,17 @@ export function processFor(
   const { source, value, key, index } = parseResult
 
   const forNode: ForNode = {
-    type: NodeTypes.FOR,
-    loc: dir.loc,
-    source,
-    valueAlias: value,
-    keyAlias: key,
-    objectIndexAlias: index,
-    parseResult,
-    children: node.tagType === ElementTypes.TEMPLATE ? node.children : [node]
+    type: NodeTypes.FOR,  // 节点类型
+    loc: dir.loc, // 位置信息
+    source, // 来源
+    valueAlias: value,  // value别名
+    keyAlias: key,  // key别名
+    objectIndexAlias: index,  // 对象索引别名
+    parseResult,  // 解析结果
+    children: node.tagType === ElementTypes.TEMPLATE ? node.children : [node]   // 子节点
   }
 
-  context.replaceNode(forNode)
+  context.replaceNode(forNode)  // 替换for节点为当前操作节点???
 
   // bookkeeping
   scopes.vFor++
@@ -205,7 +205,7 @@ export function processFor(
   return () => {
     scopes.vFor--
     if (!__BROWSER__ && context.prefixIdentifiers) {
-      value && removeIdentifiers(value)
+      value && removeIdentifiers(value)   // 移除标识???
       key && removeIdentifiers(key)
       index && removeIdentifiers(index)
     }
@@ -213,9 +213,11 @@ export function processFor(
   }
 }
 
+// for别名正则
 const forAliasRE = /([\s\S]*?)\s+(?:in|of)\s+([\s\S]*)/
 // This regex doesn't cover the case if key or index aliases have destructuring,
 // but those do not make sense in the first place, so this works in practice.
+// for迭代器正则
 const forIteratorRE = /,([^,\}\]]*)(?:,([^,\}\]]*))?$/
 const stripParensRE = /^\(|\)$/g
 
@@ -226,6 +228,7 @@ export interface ForParseResult {
   index: ExpressionNode | undefined
 }
 
+// 解析for表达式
 export function parseForExpression(
   input: SimpleExpressionNode,
   context: TransformContext
