@@ -44,6 +44,7 @@ import { processExpression } from './transformExpression'
 import { validateBrowserExpression } from '../validateExpression'
 import { PatchFlags, PatchFlagNames } from '@vue/shared'
 
+// 转换v-for
 export const transformFor = createStructuralDirectiveTransform(
   'for',
   (node, dir, context) => {
@@ -145,6 +146,7 @@ export const transformFor = createStructuralDirectiveTransform(
 )
 
 // target-agnostic transform used for both Client and SSR
+// 目标不可知转换用于客户端和SSR的转换
 export function processFor(
   node: ElementNode,
   dir: DirectiveNode,

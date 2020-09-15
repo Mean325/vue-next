@@ -76,10 +76,9 @@ export interface ParserContext {
   inVPre: boolean // v-pre，不处理指令和插值
 }
 
-
 // template string解析成AST
 export function baseParse(
-  content: string,  // 原始模板字符串
+  content: string, // 原始模板字符串,即template
   options: ParserOptions = {}
 ): RootNode {
   // 创建解析内容
@@ -104,7 +103,7 @@ function createParserContext(
     options[key] = rawOptions[key] || defaultParserOptions[key]
   }
   return {
-    options,  // 解析选项
+    options, // 解析选项
     column: 1, // parser解析到的列数
     line: 1, // 解析到的行数
     offset: 0, // 解析到相对于template string开始的位置
@@ -119,9 +118,9 @@ function createParserContext(
 function parseChildren(
   context: ParserContext,
   mode: TextModes,
-  ancestors: ElementNode[]    // 祖先节点，是一个栈结构，用于维护节点嵌套关系，越靠后的节点在dom树中的层级越深
+  ancestors: ElementNode[] // 祖先节点，是一个栈结构，用于维护节点嵌套关系，越靠后的节点在dom树中的层级越深
 ): TemplateChildNode[] {
-  const parent = last(ancestors)  // 祖先节点中的最后一个,即父节点
+  const parent = last(ancestors) // 祖先节点中的最后一个,即父节点
   const ns = parent ? parent.ns : Namespaces.HTML // 获取命名空间.如果存在父节点取父节点命名空间,否则为HTML
   const nodes: TemplateChildNode[] = [] // 存储解析出来的AST子节点
 
@@ -378,11 +377,11 @@ function parseElement(
   __TEST__ && assert(/^<[a-z]/i.test(context.source))
 
   // Start tag.
-  const wasInPre = context.inPre  // 是否为pre
-  const wasInVPre = context.inVPre  // 是否为v-pre
-  const parent = last(ancestors)  // 获取父节点
+  const wasInPre = context.inPre // 是否为pre
+  const wasInVPre = context.inVPre // 是否为v-pre
+  const parent = last(ancestors) // 获取父节点
   const element = parseTag(context, TagType.Start, parent)
-  const isPreBoundary = context.inPre && !wasInPre  // 是否pre边界???
+  const isPreBoundary = context.inPre && !wasInPre // 是否pre边界???
   const isVPreBoundary = context.inVPre && !wasInVPre // 是否v-pre边界???
 
   if (element.isSelfClosing || context.options.isVoidTag(element.tag)) {
@@ -434,8 +433,8 @@ const isSpecialTemplateDirective = /*#__PURE__*/ makeMap(
  * 解析具有该类型（开始或结束）的标签（例如<div id = a>）
  */
 function parseTag(
-  context: ParserContext,
-  type: TagType,
+  context: ParserContext, // 需要解析的字符串
+  type: TagType, // 标签类型
   parent: ElementNode | undefined
 ): ElementNode {
   __TEST__ && assert(/^<\/?[a-z]/i.test(context.source))
@@ -445,21 +444,21 @@ function parseTag(
     )
 
   // Tag open.
-  const start = getCursor(context)  // 获取光标参数
+  const start = getCursor(context) // 获取光标参数
   // 正则匹配开始 / 结束标签，\/?表示‘/’可有可无，因为此处匹配的是开始或者结束标签
   // 所以有的有‘/’有的没有
   const match = /^<\/?([a-z][^\t\r\n\f />]*)/i.exec(context.source)!
   // exec返回的数组第一个是正则匹配文本，后面匹配到的是除\t\r\n\f />这些字符外的内容
   // 也就是节点的标签名、各种属性集
-  const tag = match[1]
+  const tag = match[1] // 取到标签名
   const ns = context.options.getNamespace(tag, parent)
 
-  advanceBy(context, match[0].length) // 前进???
-  advanceSpaces(context)  // 空格前进???
+  advanceBy(context, match[0].length) // 光标前进
+  advanceSpaces(context) // 空格前进???
 
   // 保存当前状态，以防我们需要使用v-pre重新解析属性
   const cursor = getCursor(context) // 获取光标
-  const currentSource = context.source  // 原始内容
+  const currentSource = context.source // 原始内容
 
   // 属性
   let props = parseAttributes(context, type)
@@ -539,7 +538,7 @@ function parseTag(
   }
 }
 
-// 解析属性
+// 解析全部属性
 function parseAttributes(
   context: ParserContext,
   type: TagType
@@ -574,13 +573,14 @@ function parseAttributes(
   return props
 }
 
+// 解析属性
 function parseAttribute(
   context: ParserContext,
   nameSet: Set<string>
 ): AttributeNode | DirectiveNode {
   __TEST__ && assert(/^[^\t\r\n\f />]/.test(context.source))
 
-  // Name.
+  // 获取属性名
   const start = getCursor(context)
   const match = /^[^\t\r\n\f />][^\t\r\n\f />=]*/.exec(context.source)!
   const name = match[0]
@@ -591,6 +591,7 @@ function parseAttribute(
   nameSet.add(name)
 
   if (name[0] === '=') {
+    // 属性名称不能以“ =”开头
     emitError(context, ErrorCodes.UNEXPECTED_EQUALS_SIGN_BEFORE_ATTRIBUTE_NAME)
   }
   {
@@ -607,7 +608,7 @@ function parseAttribute(
 
   advanceBy(context, name.length)
 
-  // Value
+  //  获取属性值
   let value:
     | {
         content: string
@@ -831,6 +832,7 @@ function parseInterpolation(
 }
 
 // 解析普通文本
+// 包含空格换行
 function parseText(context: ParserContext, mode: TextModes): TextNode {
   __TEST__ && assert(context.source.length > 0)
 
@@ -849,7 +851,7 @@ function parseText(context: ParserContext, mode: TextModes): TextNode {
 
   __TEST__ && assert(endIndex > 0)
 
-  const start = getCursor(context)
+  const start = getCursor(context) // 获取当前光标
   const content = parseTextData(context, endIndex, mode)
 
   return {
@@ -860,15 +862,15 @@ function parseText(context: ParserContext, mode: TextModes): TextNode {
 }
 
 /**
- * Get text data with a given length from the current location.
- * This translates HTML entities in the text data.
+ * 从当前位置获取给定长度的文本数据。
+ * 这将转换文本数据中的HTML实体。
  */
 function parseTextData(
   context: ParserContext,
   length: number,
   mode: TextModes
 ): string {
-  const rawText = context.source.slice(0, length)
+  const rawText = context.source.slice(0, length) // 截取给定长度
   advanceBy(context, length)
   if (
     mode === TextModes.RAWTEXT ||
@@ -885,7 +887,7 @@ function parseTextData(
   }
 }
 
-// 获取光标参数 
+// 获取光标参数
 function getCursor(context: ParserContext): Position {
   const { column, line, offset } = context
   return { column, line, offset }

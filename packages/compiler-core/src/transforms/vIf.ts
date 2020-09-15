@@ -40,18 +40,19 @@ export const transformIf = createStructuralDirectiveTransform(
       // #1587: We need to dynamically increment the key based on the current
       // node's sibling nodes, since chained v-if/else branches are
       // rendered at the same depth
-      const siblings = context.parent!.children
-      let i = siblings.indexOf(ifNode)
+      //＃1587：我们需要根据当前节点的同级节点动态增加密钥，因为链接的v-if/else分支的渲染深度相同
+
+      const siblings = context.parent!.children // 获取兄弟节点
+      let i = siblings.indexOf(ifNode) // 获取当前节点的位置
       let key = 0
       while (i-- >= 0) {
         const sibling = siblings[i]
         if (sibling && sibling.type === NodeTypes.IF) {
-          key += sibling.branches.length
+          key += sibling.branches.length // 向上取到相邻的v-if深度
         }
       }
 
-      // Exit callback. Complete the codegenNode when all children have been
-      // transformed.
+      // 退出回调。 转换完所有子代后，完成codegenNode。
       return () => {
         if (isRoot) {
           ifNode.codegenNode = createCodegenNodeForBranch(
@@ -61,6 +62,7 @@ export const transformIf = createStructuralDirectiveTransform(
           ) as IfConditionalExpression
         } else {
           // attach this branch's codegen node to the v-if root.
+          // 将此分支的codegen节点附加到v-if根目录。
           let parentCondition = ifNode.codegenNode!
           while (
             parentCondition.alternate.type ===
@@ -83,25 +85,25 @@ export const transformIf = createStructuralDirectiveTransform(
 // 目标无关的转换用于客户端和SSR
 // 处理If
 export function processIf(
-  node: ElementNode,  // 元素节点
-  dir: DirectiveNode,   // 指令节点
-  context: TransformContext,  // 转换内容
+  node: ElementNode, // 元素节点
+  dir: DirectiveNode, // 指令节点
+  context: TransformContext, // 转换内容
   processCodegen?: (
     node: IfNode,
     branch: IfBranchNode,
     isRoot: boolean
-  ) => (() => void) | undefined   // 处理编译?
+  ) => (() => void) | undefined // 处理编译?
 ) {
   if (
     dir.name !== 'else' &&
     (!dir.exp || !(dir.exp as SimpleExpressionNode).content.trim())
   ) {
     // 当指令名称不为else,且exp中的内容不为空,即v-else后带有参数时,给出报错信息
-    const loc = dir.exp ? dir.exp.loc : node.loc  // 获取指令节点的位置信息
+    const loc = dir.exp ? dir.exp.loc : node.loc // 获取指令节点的位置信息
     context.onError(
       createCompilerError(ErrorCodes.X_V_IF_NO_EXPRESSION, dir.loc)
     )
-    dir.exp = createSimpleExpression(`true`, false, loc)  // ???
+    dir.exp = createSimpleExpression(`true`, false, loc) // ???
   }
 
   if (!__BROWSER__ && context.prefixIdentifiers && dir.exp) {
@@ -112,7 +114,7 @@ export function processIf(
   }
 
   if (__DEV__ && __BROWSER__ && dir.exp) {
-    validateBrowserExpression(dir.exp as SimpleExpressionNode, context)   // 验证非前缀表达式
+    validateBrowserExpression(dir.exp as SimpleExpressionNode, context) // 验证非前缀表达式
   }
 
   const userKey = /*#__PURE__*/ findProp(node, 'key') // 获取是否有为'key'的属性
@@ -125,22 +127,22 @@ export function processIf(
 
   if (dir.name === 'if') {
     // 当指令名称为if时
-    const branch = createIfBranch(node, dir)    // 创建v-else节点
+    const branch = createIfBranch(node, dir) // 创建v-else节点
     const ifNode: IfNode = {
       type: NodeTypes.IF,
       loc: node.loc,
       branches: [branch]
-    }   // 创建v-if节点
+    } // 创建v-if节点
     context.replaceNode(ifNode) // 替换节点???
-    if (processCodegen) { 
+    if (processCodegen) {
       return processCodegen(ifNode, branch, true)
     }
   } else {
     // locate the adjacent v-if
     // 向上查找相邻的v-if
-    const siblings = context.parent!.children  // 兄弟节点
+    const siblings = context.parent!.children // 兄弟节点
     const comments = []
-    let i = siblings.indexOf(node)  // 获取当前节点的位置
+    let i = siblings.indexOf(node) // 获取当前节点的位置
     while (i-- >= -1) {
       const sibling = siblings[i]
       if (__DEV__ && sibling && sibling.type === NodeTypes.COMMENT) {
@@ -154,12 +156,12 @@ export function processIf(
         // 当节点类型为v-if时
         // 将节点移动到if节点的分支
         context.removeNode()
-        const branch = createIfBranch(node, dir)    // 创建v-else节点
+        const branch = createIfBranch(node, dir) // 创建v-else节点
         if (__DEV__ && comments.length) {
           branch.children = [...comments, ...branch.children]
-        } 
-        sibling.branches.push(branch)   // if节点分支中存入该节点
-        const onExit = processCodegen && processCodegen(sibling, branch, false)   //???
+        }
+        sibling.branches.push(branch) // if节点分支中存入该节点
+        const onExit = processCodegen && processCodegen(sibling, branch, false) //???
         // since the branch was removed, it will not be traversed.
         // make sure to traverse here.
         // 由于分支已删除，因此将不会遍历该分支。确保在这里遍历。
@@ -186,9 +188,9 @@ function createIfBranch(node: ElementNode, dir: DirectiveNode): IfBranchNode {
   return {
     type: NodeTypes.IF_BRANCH,
     loc: node.loc,
-    condition: dir.name === 'else' ? undefined : dir.exp,   // 条件
+    condition: dir.name === 'else' ? undefined : dir.exp, // 条件
     children:
-      node.tagType === ElementTypes.TEMPLATE && !findDir(node, 'for')   // 当节点的标签为Template,且没有v-for的指令
+      node.tagType === ElementTypes.TEMPLATE && !findDir(node, 'for') // 当节点的标签为Template,且没有v-for的指令
         ? node.children
         : [node]
   }

@@ -101,6 +101,7 @@ export function advancePositionWithClone(
 
 // advance by mutation without cloning (for performance reasons), since this
 // gets called a lot in the parser
+// 通过突变前进而不克隆（出于性能原因），因为这在解析中被调用很多
 export function advancePositionWithMutation(
   pos: Position,
   source: string,
@@ -134,8 +135,8 @@ export function assert(condition: boolean, msg?: string) {
 
 // 查找指定属性
 export function findDir(
-  node: ElementNode,  // 节点
-  name: string | RegExp,  // 查找的属性名
+  node: ElementNode, // 节点
+  name: string | RegExp, // 查找的属性名
   allowEmpty: boolean = false // 允许为空
 ): DirectiveNode | undefined {
   for (let i = 0; i < node.props.length; i++) {
@@ -155,7 +156,7 @@ export function findDir(
 
 // 查找props属性，包含HTML属性和指令
 export function findProp(
-  node: ElementNode,  // 节点
+  node: ElementNode, // 节点
   name: string, // 查找的属性名
   dynamicOnly: boolean = false, // 仅动态属性
   allowEmpty: boolean = false // 允许为空
@@ -164,8 +165,8 @@ export function findProp(
     const p = node.props[i]
     // 如果为仅动态时,跳过所有的HTML普通属性
     if (p.type === NodeTypes.ATTRIBUTE) {
-      if (dynamicOnly) continue   
-      if (p.name === name && (p.value || allowEmpty)) { 
+      if (dynamicOnly) continue
+      if (p.name === name && (p.value || allowEmpty)) {
         return p
       }
     } else if (p.name === 'bind' && p.exp && isBindKey(p.arg, name)) {

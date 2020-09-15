@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <script src="../packages/vue/dist/vue.global.js"></script>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script>
+    const {
+      createApp,
+      reactive,
+      computed,
+      // 当前版本并没有暴露effect composition-api
+      // effect
+    } = Vue
+    const MyComponent = {
+      template: `
+                <button @click="click">
+                {{ state.message }}
+                </button>
+                <span v-if="state.isShow">测试标签</span>  
+            `,
+      setup() {
+        const state =
+          reactive({
+            message: 'Hello world!!',
+            arr: [1, 2],
+            isShow: false
+          })
+        // effect(() => {
+        //     console.log('state change ', state.message)
+        // })
+        function click() {
+          state.message = state.message.split('').reverse().join('')
+          console.log(state.arr.includes(1))
+          state.isShow = !state.isShow
+        }
+        return {
+          state,
+          click
+        }
+      }
+    }
+    createApp(MyComponent).mount('#app')
+  </script>
+</body>
+
+</html>
