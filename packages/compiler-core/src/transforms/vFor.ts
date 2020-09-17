@@ -180,7 +180,6 @@ export function processFor(
   const { source, value, key, index } = parseResult
 
   const forNode: ForNode = {
-<<<<<<< Updated upstream
     type: NodeTypes.FOR,  // 节点类型
     loc: dir.loc, // 位置信息
     source, // 来源
@@ -192,19 +191,6 @@ export function processFor(
   }
 
   context.replaceNode(forNode)  // 替换for节点为当前操作节点???
-=======
-    type: NodeTypes.FOR,  // v-for节点
-    loc: dir.loc,
-    source,
-    valueAlias: value,
-    keyAlias: key,
-    objectIndexAlias: index,
-    parseResult,
-    children: node.tagType === ElementTypes.TEMPLATE ? node.children : [node]
-  }
-
-  context.replaceNode(forNode)  // 解析节点替换转换后的节点
->>>>>>> Stashed changes
 
   // bookkeeping
   scopes.vFor++   // context中vFor数量加一
