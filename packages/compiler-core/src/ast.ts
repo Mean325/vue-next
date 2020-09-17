@@ -45,7 +45,7 @@ export const enum NodeTypes {
   JS_PROPERTY,  // JS属性
   JS_ARRAY_EXPRESSION,
   JS_FUNCTION_EXPRESSION,
-  JS_CONDITIONAL_EXPRESSION,
+  JS_CONDITIONAL_EXPRESSION,  // 条件表达式,v-if
   JS_CACHE_EXPRESSION,
 
   // ssr codegen
@@ -120,7 +120,7 @@ export type ElementNode =
 
 // 元素节点
 export interface BaseElementNode extends Node {
-  type: NodeTypes.ELEMENT   // 类型
+  type: NodeTypes.ELEMENT   // 节点类型
   ns: Namespace   // 命名空间,默认为 HTML，即 0
   tag: string   // 标签名
   tagType: ElementTypes   // 元素类型
@@ -129,6 +129,7 @@ export interface BaseElementNode extends Node {
   children: TemplateChildNode[]   // 子节点
 }
 
+// 普通元素节点
 export interface PlainElementNode extends BaseElementNode {
   tagType: ElementTypes.ELEMENT
   codegenNode:
@@ -359,9 +360,9 @@ export interface FunctionExpression extends Node {
 export interface ConditionalExpression extends Node {
   type: NodeTypes.JS_CONDITIONAL_EXPRESSION
   test: JSChildNode
-  consequent: JSChildNode
-  alternate: JSChildNode
-  newline: boolean
+  consequent: JSChildNode   // 结果
+  alternate: JSChildNode  // 备用
+  newline: boolean  // 是否另起一行
 }
 
 export interface CacheExpression extends Node {
@@ -701,6 +702,7 @@ export function createFunctionExpression(
   }
 }
 
+// 创建条件表达式
 export function createConditionalExpression(
   test: ConditionalExpression['test'],
   consequent: ConditionalExpression['consequent'],

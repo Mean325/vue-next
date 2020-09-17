@@ -154,6 +154,7 @@ export function processFor(
   processCodegen?: (forNode: ForNode) => (() => void) | undefined
 ) {
   if (!dir.exp) {
+    // v-for表达式不能为空
     context.onError(
       createCompilerError(ErrorCodes.X_V_FOR_NO_EXPRESSION, dir.loc)
     )
@@ -163,6 +164,7 @@ export function processFor(
   const parseResult = parseForExpression(
     // can only be simple expression because vFor transform is applied
     // before expression transform.
+    // 只能是简单表达式，因为vFor转换在表达式转换之前应用。
     dir.exp as SimpleExpressionNode,
     context
   )
@@ -178,6 +180,7 @@ export function processFor(
   const { source, value, key, index } = parseResult
 
   const forNode: ForNode = {
+<<<<<<< Updated upstream
     type: NodeTypes.FOR,  // 节点类型
     loc: dir.loc, // 位置信息
     source, // 来源
@@ -189,9 +192,22 @@ export function processFor(
   }
 
   context.replaceNode(forNode)  // 替换for节点为当前操作节点???
+=======
+    type: NodeTypes.FOR,  // v-for节点
+    loc: dir.loc,
+    source,
+    valueAlias: value,
+    keyAlias: key,
+    objectIndexAlias: index,
+    parseResult,
+    children: node.tagType === ElementTypes.TEMPLATE ? node.children : [node]
+  }
+
+  context.replaceNode(forNode)  // 解析节点替换转换后的节点
+>>>>>>> Stashed changes
 
   // bookkeeping
-  scopes.vFor++
+  scopes.vFor++   // context中vFor数量加一
   if (!__BROWSER__ && context.prefixIdentifiers) {
     // scope management
     // inject identifiers to context
@@ -235,9 +251,10 @@ export function parseForExpression(
 ): ForParseResult | undefined {
   const loc = input.loc
   const exp = input.content
-  const inMatch = exp.match(forAliasRE)
+  const inMatch = exp.match(forAliasRE) // for别名正则
   if (!inMatch) return
 
+  // 如item in arr中, LHS为item, RHS为arr
   const [, LHS, RHS] = inMatch
 
   const result: ForParseResult = {
@@ -262,8 +279,8 @@ export function parseForExpression(
 
   let valueContent = LHS.trim()
     .replace(stripParensRE, '')
-    .trim()
-  const trimmedOffset = LHS.indexOf(valueContent)
+    .trim()   // item去除空格和???
+  const trimmedOffset = LHS.indexOf(valueContent) // 修整之后的缩进位数
 
   const iteratorMatch = valueContent.match(forIteratorRE)
   if (iteratorMatch) {
@@ -331,6 +348,7 @@ export function parseForExpression(
   return result
 }
 
+// 创建别名表达式
 function createAliasExpression(
   range: SourceLocation,
   content: string,
@@ -338,7 +356,7 @@ function createAliasExpression(
 ): SimpleExpressionNode {
   return createSimpleExpression(
     content,
-    false,
+    false,  // 非静态
     getInnerRange(range, offset, content.length)
   )
 }

@@ -109,7 +109,7 @@ export function processIf(
   if (!__BROWSER__ && context.prefixIdentifiers && dir.exp) {
     // dir.exp can only be simple expression because vIf transform is applied
     // before expression transform.
-    // dir.exp只能是简单表达式，因为vIf变换应用在表达式变换之前。
+    // dir.exp只能是简单表达式，因为vIf转换应用在表达式转换之前。
     dir.exp = processExpression(dir.exp as SimpleExpressionNode, context)
   }
 
@@ -127,7 +127,7 @@ export function processIf(
 
   if (dir.name === 'if') {
     // 当指令名称为if时
-    const branch = createIfBranch(node, dir) // 创建v-else节点
+    const branch = createIfBranch(node, dir) // 创建if分支节点
     const ifNode: IfNode = {
       type: NodeTypes.IF,
       loc: node.loc,
@@ -156,11 +156,11 @@ export function processIf(
         // 当节点类型为v-if时
         // 将节点移动到if节点的分支
         context.removeNode()
-        const branch = createIfBranch(node, dir) // 创建v-else节点
+        const branch = createIfBranch(node, dir) // 创建v-if分支节点
         if (__DEV__ && comments.length) {
-          branch.children = [...comments, ...branch.children]
+          branch.children = [...comments, ...branch.children]   // children塞入注释,和子节点1
         }
-        sibling.branches.push(branch) // if节点分支中存入该节点
+        sibling.branches.push(branch) // if节点中存入该分支节点
         const onExit = processCodegen && processCodegen(sibling, branch, false) //???
         // since the branch was removed, it will not be traversed.
         // make sure to traverse here.
@@ -186,7 +186,7 @@ export function processIf(
 // 创建if分支
 function createIfBranch(node: ElementNode, dir: DirectiveNode): IfBranchNode {
   return {
-    type: NodeTypes.IF_BRANCH,
+    type: NodeTypes.IF_BRANCH,  // If分支
     loc: node.loc,
     condition: dir.name === 'else' ? undefined : dir.exp, // 条件
     children:
@@ -208,6 +208,7 @@ function createCodegenNodeForBranch(
       createChildrenCodegenNode(branch, keyIndex, context),
       // make sure to pass in asBlock: true so that the comment node call
       // closes the current block.
+      // 确保传递asBlock：true，以便注释节点调用关闭当前块。
       createCallExpression(context.helper(CREATE_COMMENT), [
         __DEV__ ? '"v-if"' : '""',
         'true'

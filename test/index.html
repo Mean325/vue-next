@@ -21,17 +21,21 @@
     } = Vue
     const MyComponent = {
       template: `
-                <button @click="click">
-                {{ state.message }}
-                </button>
-                <span v-if="state.isShow">测试标签</span>  
+                <span v-if="state.isShow">测试标签</span>
+                <span v-else>else测试标签</span>
             `,
+            // <button @click="click">
+            //     {{ state.message }}
+            //     </button>
+                // <div :title="aaa"></div>
+                // <div v-for="item in state.arr">{{ item }}</div>
       setup() {
         const state =
           reactive({
             message: 'Hello world!!',
-            arr: [1, 2],
-            isShow: false
+            arr: [1, 2, 3, 4],
+            isShow: false,
+            aaa: "new title"
           })
         // effect(() => {
         //     console.log('state change ', state.message)

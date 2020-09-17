@@ -22,6 +22,7 @@ export type TransformPreset = [
   Record<string, DirectiveTransform>
 ]
 
+// 获取基本转换预设
 export function getBaseTransformPreset(
   prefixIdentifiers?: boolean
 ): TransformPreset {

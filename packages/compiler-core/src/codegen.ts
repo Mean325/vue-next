@@ -138,7 +138,7 @@ function createCodegenContext(
         }
       }
     },
-    indent() {
+    indent() {  // 换行缩进
       newline(++context.indentLevel)
     },
     deindent(withoutNewLine = false) {
@@ -205,17 +205,18 @@ export function generate(
   const genScopeId = !__BROWSER__ && scopeId != null && mode === 'module'
 
   // preambles
+  // 申明方式
   if (!__BROWSER__ && mode === 'module') {
     genModulePreamble(ast, context, genScopeId)
   } else {
     genFunctionPreamble(ast, context)
   }
 
-  // binding optimizations
+  // 绑定优化
   const optimizeSources = options.bindingMetadata
     ? `, $props, $setup, $data, $options`
     : ``
-  // enter render function
+  // 进入渲染方法
   if (!ssr) {
     if (genScopeId) {
       push(`const render = ${PURE_ANNOTATION}_withId(`)
@@ -234,7 +235,9 @@ export function generate(
     indent()
     // function mode const declarations should be inside with block
     // also they should be renamed to avoid collision with user properties
+    // 函数模式const声明应位于block内，并且也应重命名以避免与用户属性冲突
     if (hasHelpers) {
+      // const { openBlock: _openBlock } = _Vue
       push(
         `const { ${ast.helpers
           .map(s => `${helperNameMap[s]}: _${helperNameMap[s]}`)
@@ -246,6 +249,7 @@ export function generate(
   }
 
   // generate asset resolution statements
+  // 生成资产清算报表???
   if (ast.components.length) {
     genAssets(ast.components, 'component', context)
     if (ast.directives.length || ast.temps > 0) {
@@ -270,6 +274,7 @@ export function generate(
   }
 
   // generate the VNode tree expression
+  // 生成虚拟节点树表达式
   if (!ssr) {
     push(`return `)
   }
@@ -294,7 +299,7 @@ export function generate(
   return {
     ast,
     code: context.code,
-    // SourceMapGenerator does have toJSON() method but it's not in the types
+    // SourceMapGenerator确实具有toJSON()方法，但它不在类型中
     map: context.map ? (context.map as any).toJSON() : undefined
   }
 }
@@ -546,7 +551,7 @@ function genNodeList(
   }
 }
 
-// 生成 Vnode 节点
+// 编译节点
 function genNode(node: CodegenNode | symbol | string, context: CodegenContext) {
   if (isString(node)) {
     context.push(node)
@@ -709,6 +714,7 @@ function genComment(node: CommentNode, context: CodegenContext) {
   }
 }
 
+// 编译虚拟节点调用
 function genVNodeCall(node: VNodeCall, context: CodegenContext) {
   const { push, helper, pure } = context
   const {
@@ -849,6 +855,7 @@ function genFunctionExpression(
   }
 }
 
+// 编译条件表达式
 function genConditionalExpression(
   node: ConditionalExpression,
   context: CodegenContext
